@@ -52,6 +52,15 @@ async fn transcribe(
     }
     let _used = check_quota(&state, &auth).await?;
 
+    // Cap simultaneous batch requests per user to bound near-cap overshoot.
+    let _slot = if auth.is_admin {
+        None
+    } else if let Some(g) = state.concurrency.try_acquire(auth.user_id, 4) {
+        Some(g)
+    } else {
+        return Err(AppError::RateLimited);
+    };
+
     let mut url = "https://api.deepgram.com/v1/listen?".to_string();
     let mut first = true;
     let mut push = |k: &str, v: &str| {

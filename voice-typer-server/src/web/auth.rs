@@ -123,7 +123,28 @@ pub async fn signup_post(
         .execute(&mut *tx)
         .await?;
 
+    // When email verification is on, stash a token to email after commit.
+    let verify_token = if state.cfg.email_verification_enabled() {
+        let vt = new_user_token();
+        sqlx::query("UPDATE users SET email_verify_token = ?1 WHERE id = ?2")
+            .bind(&vt)
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await?;
+        Some(vt)
+    } else {
+        None
+    };
+
     tx.commit().await?;
+
+    // Best effort: a failed send must not break signup (the user can resend).
+    if let Some(vt) = verify_token {
+        let url = format!("{}/verify?token={}", state.cfg.public_base_url, urlencode(&vt));
+        if let Err(e) = crate::email::send_verification(&state.http, &state.cfg, &email, &url).await {
+            tracing::warn!("verification email send failed for {email}: {e}");
+        }
+    }
 
     let sid = session::create(&state.db, user_id).await?;
 
@@ -278,6 +299,61 @@ pub async fn logout_post(
     );
     headers.insert(header::LOCATION, "/".parse().unwrap());
     (StatusCode::SEE_OTHER, headers).into_response()
+}
+
+#[derive(Deserialize)]
+pub struct VerifyQuery {
+    #[serde(default)]
+    pub token: Option<String>,
+}
+
+/// GET /verify?token=... : mark the matching account verified. No auth needed;
+/// possession of the emailed token is the proof.
+pub async fn verify_get(
+    State(state): State<AppState>,
+    Query(q): Query<VerifyQuery>,
+) -> AppResult<Response> {
+    let Some(token) = q.token.filter(|t| !t.is_empty()) else {
+        return Ok(Redirect::to("/dashboard?verified=invalid").into_response());
+    };
+    let res = sqlx::query(
+        "UPDATE users SET email_verified = 1, email_verify_token = NULL WHERE email_verify_token = ?1",
+    )
+    .bind(&token)
+    .execute(&state.db)
+    .await?;
+    if res.rows_affected() == 0 {
+        return Ok(Redirect::to("/dashboard?verified=invalid").into_response());
+    }
+    Ok(Redirect::to("/dashboard?verified=1").into_response())
+}
+
+/// POST /verify/resend : re-issue and resend the verification email.
+pub async fn verify_resend_post(
+    State(state): State<AppState>,
+    user: AuthUser,
+) -> AppResult<Response> {
+    if user.email_verified || !state.cfg.email_verification_enabled() {
+        return Ok(Redirect::to("/dashboard").into_response());
+    }
+    if !state
+        .rate_limiter
+        .check(&format!("verify_resend:{}", user.id), 3, Duration::from_secs(600))
+    {
+        return Ok(Redirect::to("/dashboard?verified=throttled").into_response());
+    }
+    let vt = new_user_token();
+    sqlx::query("UPDATE users SET email_verify_token = ?1 WHERE id = ?2")
+        .bind(&vt)
+        .bind(user.id)
+        .execute(&state.db)
+        .await?;
+    let url = format!("{}/verify?token={}", state.cfg.public_base_url, urlencode(&vt));
+    if let Err(e) = crate::email::send_verification(&state.http, &state.cfg, &user.email, &url).await {
+        tracing::warn!("verification resend failed for {}: {e}", user.email);
+        return Ok(Redirect::to("/dashboard?verified=error").into_response());
+    }
+    Ok(Redirect::to("/dashboard?verified=sent").into_response())
 }
 
 fn urlencode(s: &str) -> String {

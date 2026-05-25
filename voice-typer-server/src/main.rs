@@ -2,6 +2,7 @@ mod auth;
 mod billing;
 mod config;
 mod db;
+mod email;
 mod error;
 mod proxy;
 mod rate_limit;
@@ -28,6 +29,7 @@ pub struct AppState {
     pub http: reqwest::Client,
     pub session_lock: SessionLock,
     pub rate_limiter: Arc<rate_limit::RateLimiter>,
+    pub concurrency: rate_limit::Concurrency,
 }
 
 #[tokio::main]
@@ -50,6 +52,7 @@ async fn main() -> Result<()> {
             .build()?,
         session_lock: SessionLock::new(),
         rate_limiter: Arc::new(rate_limit::RateLimiter::new()),
+        concurrency: rate_limit::Concurrency::new(),
     };
 
     // Static landing assets: logo, favicon, svgs. Served from ./landing.
@@ -62,6 +65,8 @@ async fn main() -> Result<()> {
         .route("/logout", post(web::auth::logout_post))
         .route("/dashboard", get(web::dashboard::render))
         .route("/dashboard/token/rotate", post(web::dashboard::rotate_token_post))
+        .route("/verify", get(web::auth::verify_get))
+        .route("/verify/resend", post(web::auth::verify_resend_post))
         .route("/admin", get(web::admin::render))
         .route("/admin/invites", post(web::admin::mint_invite_post))
         .route("/admin/users/:id/quota", post(web::admin::set_quota_post))

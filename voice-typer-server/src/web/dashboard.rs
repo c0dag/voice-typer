@@ -19,6 +19,8 @@ pub struct DashboardQuery {
     pub token: Option<String>,
     #[serde(default)]
     pub sub: Option<String>,
+    #[serde(default)]
+    pub verified: Option<String>,
 }
 
 /// Format a duration given in seconds as minutes, matching how plans are
@@ -80,6 +82,42 @@ pub async fn render(
             r#"<div class="error">Checkout canceled. You can pick a plan whenever you are ready.</div>"#
         }
         _ => "",
+    };
+
+    let verify_flash = match q.verified.as_deref() {
+        Some("1") => r#"<div class="success">Email verified. You are all set.</div>"#,
+        Some("sent") => r#"<div class="success">Verification email sent. Check your inbox.</div>"#,
+        Some("invalid") => {
+            r#"<div class="error">That verification link is invalid or expired. Resend it below.</div>"#
+        }
+        Some("throttled") => {
+            r#"<div class="error">Too many resend attempts. Please wait a few minutes.</div>"#
+        }
+        Some("error") => {
+            r#"<div class="error">We could not send the email just now. Try again shortly.</div>"#
+        }
+        _ => "",
+    };
+
+    // When verification is on and this account is not yet verified, prompt to
+    // verify (the free trial stays gated until they do).
+    let needs_verify =
+        state.cfg.email_verification_enabled() && !user.is_admin && !user.email_verified;
+    let verify_card = if needs_verify {
+        format!(
+            r#"<div class="card">
+                 <h2>Verify your email</h2>
+                 <p class="muted">We sent a verification link to <strong>{email}</strong>. Click it to activate your free trial. Your token works once your email is verified.</p>
+                 <form method="post" action="/verify/resend">
+                   <div class="row">
+                     <button class="secondary" type="submit">Resend email</button>
+                   </div>
+                 </form>
+               </div>"#,
+            email = super::html_escape(&user.email),
+        )
+    } else {
+        String::new()
     };
 
     let plan_card = if user.is_admin {
@@ -264,6 +302,8 @@ pub async fn render(
            <p class="subtitle">Signed in as <strong>{email}</strong>.</p>
 
            {flash}
+           {verify_flash}
+           {verify_card}
            {plan_card}
            {token_card}
            {downloads_card}
@@ -274,6 +314,8 @@ pub async fn render(
            </div>"##,
         email = super::html_escape(&user.email),
         flash = flash,
+        verify_flash = verify_flash,
+        verify_card = verify_card,
         plan_card = plan_card,
         token_card = token_card,
         downloads_card = downloads_card,

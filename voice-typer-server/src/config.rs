@@ -25,6 +25,13 @@ pub struct Config {
     pub stripe_price_pro: Option<String>,
     /// Public origin used to build Stripe redirect URLs (no trailing slash).
     pub public_base_url: String,
+
+    // Email (Resend). When the API key is unset, email verification is disabled
+    // and signup behaves as before (no verification required).
+    pub resend_api_key: Option<String>,
+    /// From address for outgoing email. Must be on a domain verified in Resend
+    /// (or Resend's test sender for development).
+    pub email_from: String,
 }
 
 impl Config {
@@ -51,7 +58,15 @@ impl Config {
                 .unwrap_or_else(|_| "http://localhost:8090".into())
                 .trim_end_matches('/')
                 .to_string(),
+            resend_api_key: nonempty("RESEND_API_KEY"),
+            email_from: env::var("EMAIL_FROM")
+                .unwrap_or_else(|_| "Voice Typer <onboarding@resend.dev>".into()),
         })
+    }
+
+    /// Email verification is enforced only when an email provider is configured.
+    pub fn email_verification_enabled(&self) -> bool {
+        self.resend_api_key.is_some()
     }
 
     /// Subscription gating is active only when Stripe is fully configured.

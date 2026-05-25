@@ -22,6 +22,8 @@ pub enum AppError {
     RateLimited,
     #[error("subscription inactive")]
     SubscriptionInactive,
+    #[error("email not verified")]
+    EmailNotVerified,
     #[error("bad request: {0}")]
     BadRequest(String),
     #[error("conflict: {0}")]
@@ -44,6 +46,7 @@ impl IntoResponse for AppError {
             AppError::QuotaExceeded => (StatusCode::TOO_MANY_REQUESTS, "quota_exceeded"),
             AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate_limited"),
             AppError::SubscriptionInactive => (StatusCode::PAYMENT_REQUIRED, "subscription_inactive"),
+            AppError::EmailNotVerified => (StatusCode::FORBIDDEN, "email_not_verified"),
             AppError::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             AppError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
             AppError::Upstream(_) => (StatusCode::BAD_GATEWAY, "upstream"),

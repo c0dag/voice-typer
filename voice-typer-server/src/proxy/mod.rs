@@ -20,11 +20,11 @@ pub async fn authenticate_token(state: &AppState, parts: &Parts) -> AppResult<To
 pub async fn authenticate_token_str(state: &AppState, token: &str) -> AppResult<TokenAuth> {
     let token_hash = crate::auth::hash_token(token);
 
-    let row: Option<(i64, i64, i64, String, i64, Option<String>, Option<String>)> =
+    let row: Option<(i64, i64, i64, String, i64, Option<String>, Option<String>, i64)> =
         sqlx::query_as(
             r#"SELECT users.id, users.is_admin, users.daily_quota_seconds,
                       users.subscription_status, users.monthly_minute_quota,
-                      users.period_start, users.period_end
+                      users.period_start, users.period_end, users.email_verified
                FROM tokens
                JOIN users ON users.id = tokens.user_id
                WHERE tokens.token_hash = ?1"#,
@@ -41,6 +41,7 @@ pub async fn authenticate_token_str(state: &AppState, token: &str) -> AppResult<
         monthly_minute_quota,
         period_start,
         period_end,
+        email_verified,
     ) = row.ok_or(AppError::Unauthorized)?;
 
     // Touch last_used_at (best-effort).
@@ -57,6 +58,7 @@ pub async fn authenticate_token_str(state: &AppState, token: &str) -> AppResult<
         monthly_minute_quota,
         period_start,
         period_end,
+        email_verified: email_verified != 0,
     })
 }
 
@@ -111,6 +113,7 @@ pub struct TokenAuth {
     pub monthly_minute_quota: i64,
     pub period_start: Option<String>,
     pub period_end: Option<String>,
+    pub email_verified: bool,
 }
 
 /// Gate a request before forwarding to Deepgram. Returns the seconds already
@@ -153,6 +156,11 @@ pub async fn check_quota(state: &AppState, auth: &TokenAuth) -> AppResult<f64> {
             }
             Ok(used)
         } else {
+            // The free trial requires a verified email (only enforced when an
+            // email provider is configured; otherwise this is a no-op).
+            if state.cfg.email_verification_enabled() && !auth.email_verified {
+                return Err(AppError::EmailNotVerified);
+            }
             // Free trial: allow up to TRIAL_SECONDS of total (lifetime) usage,
             // after which the account must subscribe.
             let lifetime: f64 = sqlx::query_scalar(

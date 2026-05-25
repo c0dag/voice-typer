@@ -71,6 +71,7 @@ pub struct AuthUser {
     pub plan: Option<String>,
     pub monthly_minute_quota: i64,
     pub stripe_customer_id: Option<String>,
+    pub email_verified: bool,
 }
 
 #[axum::async_trait]
@@ -79,10 +80,10 @@ impl FromRequestParts<AppState> for AuthUser {
 
     async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
         let sid = extract_session_cookie(parts).ok_or(AppError::Unauthorized)?;
-        let row = sqlx::query_as::<_, (i64, String, i64, i64, String, Option<String>, i64, Option<String>)>(
+        let row = sqlx::query_as::<_, (i64, String, i64, i64, String, Option<String>, i64, Option<String>, i64)>(
             r#"SELECT users.id, users.email, users.is_admin, users.daily_quota_seconds,
                       users.subscription_status, users.plan, users.monthly_minute_quota,
-                      users.stripe_customer_id
+                      users.stripe_customer_id, users.email_verified
                FROM sessions
                JOIN users ON users.id = sessions.user_id
                WHERE sessions.id = ?1 AND sessions.expires_at > datetime('now')"#,
@@ -91,7 +92,7 @@ impl FromRequestParts<AppState> for AuthUser {
         .fetch_optional(&state.db)
         .await?;
 
-        let (id, email, is_admin, daily_quota_seconds, subscription_status, plan, monthly_minute_quota, stripe_customer_id) =
+        let (id, email, is_admin, daily_quota_seconds, subscription_status, plan, monthly_minute_quota, stripe_customer_id, email_verified) =
             row.ok_or(AppError::Unauthorized)?;
         Ok(AuthUser {
             id,
@@ -102,6 +103,7 @@ impl FromRequestParts<AppState> for AuthUser {
             plan,
             monthly_minute_quota,
             stripe_customer_id,
+            email_verified: email_verified != 0,
         })
     }
 }
