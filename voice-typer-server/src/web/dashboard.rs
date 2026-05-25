@@ -195,6 +195,10 @@ pub async fn render(
                  <p>Universal &middot; DMG</p>
                </a>
              </div>
+             <details class="mac-note">
+               <summary>macOS says it &ldquo;could not verify&rdquo; the app?</summary>
+               <p class="muted">That&rsquo;s macOS Gatekeeper, not a real problem. The app just isn&rsquo;t from the App Store, so macOS checks with you first. Click <strong>Done</strong> (not Move to Trash), open <strong>System Settings &rarr; Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> next to VoiceTyper, then confirm. You only do this once.</p>
+             </details>
              <p class="muted">New to Voice Typer? See <a href="/#how">how it works</a> for the per-platform setup steps.</p>
            </div>"##
             .to_string()
