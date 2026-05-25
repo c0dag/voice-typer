@@ -1,0 +1,38 @@
+[Unit]
+Description=Voice Typer server (axum + sqlite proxy for Deepgram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=voice-typer
+Group=voice-typer
+WorkingDirectory=/opt/voice-typer-server
+EnvironmentFile=/etc/voice-typer-server/env
+ExecStart=/opt/voice-typer-server/voice-typer-server
+Restart=on-failure
+RestartSec=3s
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+
+# Allow writing to the data dir only.
+ReadWritePaths=/var/lib/voice-typer-server
+
+# Bind only localhost; the Cloudflare tunnel reaches us through 127.0.0.1.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

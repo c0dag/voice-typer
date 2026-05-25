@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Typer: push-to-talk voice dictation for Windows and macOS</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <meta name="description" content="Voice Typer is a fast, lightweight push-to-talk voice dictation app for Windows and macOS. Hold a key, speak, release, and your speech to text pastes at the cursor.">
+  <link rel="canonical" href="https://voice.codag.site/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://voice.codag.site/">
+  <meta property="og:site_name" content="Voice Typer">
+  <meta property="og:title" content="Voice Typer: push-to-talk voice dictation for Windows and macOS">
+  <meta property="og:description" content="Hold a key, speak, release. Your words paste at the cursor. A fast, lightweight push-to-talk voice dictation app for Windows and macOS.">
+  <meta property="og:image" content="https://voice.codag.site/logo.png">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="pt_BR">
+  <meta property="og:locale:alternate" content="es_ES">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@emojidecawboy">
+  <meta name="twitter:creator" content="@emojidecawboy">
+  <meta name="twitter:title" content="Voice Typer: push-to-talk voice dictation for Windows and macOS">
+  <meta name="twitter:description" content="Hold a key, speak, release. Your words paste at the cursor. A fast, lightweight push-to-talk voice dictation app for Windows and macOS.">
+  <meta name="twitter:image" content="https://voice.codag.site/logo.png">
+  <style>
+    /* ============================================================
+       VOICE TYPER. landing page
+       Direction: Apple-style minimal product page.
+       Pristine white. Restrained type. Lightweight push-to-talk.
+    ============================================================ */
+    :root {
+      --bg: #ffffff;
+      --bg-soft: #f5f5f7;
+      --bg-tint: #fbfbfd;
+      --line: #d2d2d7;
+      --line-soft: #e5e5ea;
+      --ink: #1d1d1f;
+      --ink-2: #424245;
+      --ink-3: #6e6e73;
+      --ink-4: #86868b;
+      --blue: #0066cc;
+      --green: #22c55e;
+      --green-soft: #e7f6ec;
+      --amber: #f59e0b;
+      --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, "Segoe UI", "Helvetica Neue", sans-serif;
+      --text:    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, "Segoe UI", "Helvetica Neue", sans-serif;
+      --mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font: 17px/1.47 var(--text);
+      letter-spacing: -0.022em;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    img { display: block; }
+
+    /* ============================================================
+       NAV. slim, sticky, blurred
+    ============================================================ */
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 44px;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 500; }
+    .nav-brand img { width: 18px; height: 18px; image-rendering: -webkit-optimize-contrast; }
+    .nav-actions { display: flex; gap: 22px; align-items: center; }
+    .nav-actions a {
+      color: var(--ink-2);
+      text-decoration: none;
+      transition: color 120ms;
+    }
+    .nav-actions a:hover { color: var(--ink); }
+    .nav-actions .buy {
+      color: white;
+      background: var(--ink);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-weight: 500;
+      transition: background 120ms;
+    }
+    .nav-actions .buy:hover { background: var(--blue); color: white; }
+
+    /* ============================================================
+       HERO. two-column on desktop, soft lilac gradient
+    ============================================================ */
+    /* Soft, low-saturation white -> lavender wash. Full-bleed, sits behind
+       the centered content. Subtle: removes flat-white without a heavy band. */
+    .hero-wrap {
+      position: relative;
+      background:
+        radial-gradient(120% 90% at 82% 18%, rgba(154,140,255,0.16) 0%, rgba(154,140,255,0) 56%),
+        radial-gradient(110% 80% at 12% 6%, rgba(120,170,255,0.10) 0%, rgba(120,170,255,0) 50%),
+        linear-gradient(180deg, #ffffff 0%, #f6f5fe 62%, #f2f0fc 100%);
+    }
+    .hero {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: clamp(40px, 7vw, 92px) 22px clamp(40px, 6vw, 72px);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(34px, 5vw, 56px);
+      align-items: center;
+      text-align: center;
+    }
+    @media (min-width: 860px) {
+      .hero { grid-template-columns: 1.05fr 0.95fr; text-align: left; }
+      /* Higher specificity than the base `.hero-sub { margin: 0 auto 16px }`
+         so the sub left-aligns flush with the title/eyebrow/CTA on desktop. */
+      .hero-text .hero-sub { margin-left: 0; margin-right: 0; }
+      .hero .cta-row { justify-content: flex-start; }
+    }
+    .hero-text { min-width: 0; }
+    .hero-eyebrow {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: var(--ink-3);
+      margin: 0 0 10px;
+    }
+    .hero-eyebrow b { color: var(--ink); font-weight: 500; }
+    .hero-title {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(44px, 6.6vw, 88px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin: 0 0 14px;
+      color: var(--ink);
+    }
+    .hero-sub {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(20px, 2.4vw, 28px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--ink-3);
+      max-width: 26ch;
+      margin: 0 auto 16px;
+    }
+    .hero-meta-line {
+      font-size: 14px;
+      color: var(--ink-3);
+      margin: 0 0 28px;
+    }
+
+    /* CTA */
+    .cta-row {
+      display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
+    }
+    .btn-primary, .btn-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 26px;
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: -0.005em;
+      text-decoration: none;
+      border-radius: 999px;
+      transition: background 120ms, color 120ms;
+    }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-primary:hover { background: #0077ed; }
+    .btn-link { color: var(--blue); padding: 12px 14px; }
+    .btn-link::after { content: '\203A'; margin-left: 2px; }
+    .btn-link:hover { color: #0077ed; }
+
+    /* Built-with mini chips below the CTA. centered to match the CTA row */
+    .built-row {
+      margin: 24px 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--ink-4);
+    }
+    .built-row .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+    .built-row .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--ink-3);
+    }
+
+    /* ---- HERO live demo card (right column) ---- */
+    .hero-demo {
+      justify-self: center;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.66);
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.8) inset,
+        0 30px 70px -34px rgba(76,66,160,0.45),
+        0 8px 24px -16px rgba(0,0,0,0.18);
+      -webkit-backdrop-filter: saturate(160%) blur(8px);
+      backdrop-filter: saturate(160%) blur(8px);
+      padding: clamp(28px, 4vw, 40px) clamp(22px, 3.4vw, 34px) clamp(24px, 3.4vw, 32px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+    }
+    /* the badge reuses the shared .app-badge styles; size it up a touch here */
+    .hero-demo .app-badge { width: 104px; height: 104px; }
+    .hero-demo .badge-state {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--ink-3);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .hero-demo .badge-state .swatch {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      transition: background 200ms;
+    }
+    .hero-demo .app-badge.is-working ~ .badge-state .swatch { background: var(--amber); }
+
+    /* mock text field with typewriter line + caret + recording dot */
+    .hero-field {
+      width: 100%;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--line-soft);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      min-height: 52px;
+      text-align: left;
+    }
+    .hero-field .rec-dot {
+      flex-shrink: 0;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 16%, transparent);
+      animation: hero-recblink 1.4s ease-in-out infinite;
+    }
+    @keyframes hero-recblink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    /* the recording dot only makes sense while recording (green phase) */
+    .app-badge.is-working ~ .hero-field .rec-dot,
+    .app-badge.is-idle ~ .hero-field .rec-dot { display: none; }
+    .hero-typed {
+      font-family: var(--display);
+      font-size: 16px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1.35;
+      min-width: 0;
+      word-break: break-word;
+    }
+    .hero-caret {
+      display: inline-block;
+      width: 2px; height: 1.05em;
+      background: var(--blue);
+      margin-left: 1px;
+      vertical-align: -0.18em;
+      animation: hero-blink 1s step-end infinite;
+    }
+    @keyframes hero-blink { 50% { opacity: 0; } }
+
+    /* ============================================================
+       SECTION SCAFFOLD (shared card look)
+    ============================================================ */
+    section.feat {
+      max-width: 1280px;
+      margin: clamp(42px, 5vw, 72px) auto 0;
+      padding: 0 22px;
+    }
+    .card {
+      border-radius: 28px;
+      overflow: hidden;
+      padding: clamp(36px, 5vw, 64px);
+      position: relative;
+    }
+    .card-light { background: var(--bg-soft); }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      color: var(--green);
+      font-weight: 500;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .h2 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(28px, 3.5vw, 44px);
+      letter-spacing: -0.025em;
+      line-height: 1.05;
+      margin: 0 0 12px;
+      color: var(--ink);
+      max-width: 22ch;
+    }
+    .h2 em {
+      font-style: italic;
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+    .lead {
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--ink-2);
+      max-width: 52ch;
+      margin: 0 0 8px;
+    }
+
+    /* ============================================================
+       HOW IT WORKS. app badge + platform tabs + steps
+    ============================================================ */
+    /* The app "badge": round, dark navy, logo centered, colored state ring. */
+    .app-badge {
+      --ring: var(--green);
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: #1f2937;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      box-shadow: 0 16px 34px -12px rgba(0,0,0,0.5);
+    }
+    .app-badge img {
+      width: 56%; height: 56%;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+    }
+    /* the colored state ring sits on top as a border ring.
+       SOLID color per state (no green->green fade). Only a quick crossfade
+       on the color when the state changes (e.g. green -> amber). */
+    .app-badge::after {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 4px solid var(--ring);
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--ring) 18%, transparent);
+      transition: border-color 120ms linear, box-shadow 120ms linear;
+    }
+    /* state colors come straight from the program palette */
+    .app-badge { --ring: var(--green); }      /* recording */
+    .app-badge.is-working { --ring: var(--amber); }   /* processing */
+    .app-badge.is-idle    { --ring: #52525b; }        /* done / idle */
+    /* recording is ALWAYS pure solid green: no crossfade into it */
+    .app-badge.is-recording::after { transition: none; }
+    /* gentle SCALE-only pulse on the badge while recording (no opacity/color fade) */
+    .app-badge.is-recording { animation: badge-scale 2.2s ease-in-out infinite; }
+    @keyframes badge-scale {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.035); }
+    }
+    .badge-state {
+      margin: 0;
+      font-size: 12.5px;
+      color: var(--ink-3);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .badge-state .swatch {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      transition: background 200ms;
+    }
+    .app-badge.is-working ~ .badge-state .swatch { background: var(--amber); }
+    .app-badge.is-idle ~ .badge-state .swatch { background: #52525b; }
+
+    /* platform tabs via radio inputs (robust CSS-only switching) */
+    .tut-switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .tut-tabs {
+      display: inline-flex;
+      gap: 4px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 999px;
+      padding: 4px;
+      margin: 0 0 22px;
+    }
+    .tut-tab {
+      display: inline-flex; align-items: center; gap: 8px;
+      font: 500 13px/1 var(--text);
+      letter-spacing: -0.01em;
+      color: var(--ink-3);
+      background: transparent;
+      border: 0;
+      padding: 8px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 120ms, color 120ms;
+      user-select: none;
+    }
+    .tut-tab svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .tut-tab:hover { color: var(--ink); }
+    /* active tab styling driven by the checked radio */
+    #tut-win:checked ~ .tut-tabs label[for="tut-win"],
+    #tut-mac:checked ~ .tut-tabs label[for="tut-mac"] {
+      background: white; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    /* exactly one panel visible at a time */
+    .tut-panel { display: none; }
+    #tut-win:checked ~ .tut-panel-win { display: grid; }
+    #tut-mac:checked ~ .tut-panel-mac { display: grid; }
+
+    /* steps (display is controlled by the .tut-panel rules above, not here,
+       so an unchecked panel stays hidden) */
+    .tut-steps { list-style: none; margin: 0; padding: 0; gap: 16px; }
+    .tut-steps li { display: flex; gap: 16px; align-items: flex-start; }
+    .tut-n {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-family: var(--display);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 2px;
+    }
+    .tut-steps h4 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 17px;
+      letter-spacing: -0.018em;
+      margin: 0 0 4px;
+      color: var(--ink);
+    }
+    .tut-steps p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+    .tut-steps p a { color: var(--blue); }
+    .tut-steps kbd {
+      display: inline-block; padding: 1px 7px;
+      background: white; border: 1px solid var(--line);
+      border-bottom-width: 2px; border-radius: 6px;
+      font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+    }
+
+    /* ============================================================
+       WORKS WITH CLAUDE CODE. dark icon tile + video window frame
+    ============================================================ */
+    /* Bento: two equal-height demo cells side by side on desktop, stacked on mobile. */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 900px) {
+      .bento-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+    }
+    .bento-cell {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(20px, 2.4vw, 28px);
+      margin: 0;
+    }
+    /* text block grows so the video frame aligns to the bottom across both cells */
+    .bento-cell .bento-body { flex: 1 0 auto; }
+    .bento-cell .cc-window { margin-top: auto; }
+    .cc-head { display: flex; align-items: center; gap: 16px; margin: 0 0 18px; }
+    /* dark rounded tile so the icon's native black background blends in */
+    .cc-icon {
+      flex-shrink: 0;
+      width: 64px; height: 64px;
+      border-radius: 16px;
+      background: #15130f;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 18px -8px rgba(0,0,0,0.45);
+    }
+    .cc-icon img { width: 100%; height: 100%; object-fit: cover; image-rendering: -webkit-optimize-contrast; }
+    .cc-head .eyebrow { margin: 0; }
+    /* terminal-style window frame around the demo video */
+    .cc-window {
+      border-radius: 16px;
+      overflow: hidden;
+      background: #161618;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.06) inset,
+        0 1px 2px rgba(0,0,0,0.2),
+        0 24px 60px -28px rgba(0,0,0,0.45);
+      max-width: 100%;
+    }
+    .cc-window .titlebar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .cc-window .titlebar .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3d; }
+    .cc-window .titlebar .dot:nth-child(1) { background: #ff5f57; }
+    .cc-window .titlebar .dot:nth-child(2) { background: #ffbd2e; }
+    .cc-window .titlebar .dot:nth-child(3) { background: #28c840; }
+    .cc-window .titlebar .name {
+      margin-left: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #86868b;
+    }
+    .cc-window video {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+
+    /* ============================================================
+       PRICING. two tiers as cards
+    ============================================================ */
+    /* PRICING. larger cards, one featured tier with a green accent. */
+    .price-h2 { margin-bottom: clamp(24px, 3vw, 36px); }
+    .price-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-top: 8px;
+      max-width: 880px;
+    }
+    @media (min-width: 760px) {
+      .price-grid { grid-template-columns: 1fr 1fr; align-items: stretch; gap: 22px; }
+    }
+    .price-card {
+      position: relative;
+      border-radius: 24px;
+      background: var(--bg);
+      border: 1px solid var(--line-soft);
+      padding: clamp(32px, 4vw, 44px) clamp(28px, 3.4vw, 40px) clamp(30px, 3.4vw, 40px);
+      display: flex; flex-direction: column;
+    }
+    /* featured tier: green accent ring + tinted wash + lift */
+    .price-card.featured {
+      border: 2px solid var(--green);
+      background: linear-gradient(180deg, var(--green-soft) 0%, #ffffff 64%);
+      box-shadow: 0 24px 60px -34px rgba(27,163,74,0.45);
+    }
+    .price-badge {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: var(--green);
+      color: #fff;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      padding: 5px 11px;
+      border-radius: 999px;
+    }
+    .price-tier {
+      margin: 0 0 14px;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+      color: var(--ink-3);
+    }
+    .price-card.featured .price-tier { color: var(--green); }
+    .price-amt {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(48px, 6vw, 68px);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .price-per {
+      font-size: 0.3em;
+      font-weight: 500;
+      color: var(--ink-4);
+      margin-left: 4px;
+      letter-spacing: -0.01em;
+    }
+    .price-card p.what {
+      margin: 16px 0 0;
+      font-size: 17px;
+      color: var(--ink-2);
+    }
+    .price-card .price-cta {
+      margin-top: auto;
+      align-self: flex-start;
+      background: var(--ink);
+      color: white;
+      padding: 13px 26px;
+      border-radius: 999px;
+      font-family: var(--display);
+      font-size: 15px;
+      text-decoration: none;
+      transition: background 120ms;
+    }
+    .price-card p.what + .price-cta { margin-top: 28px; }
+    .price-card .price-cta:hover { background: var(--blue); }
+    .price-card.featured .price-cta { background: var(--green); }
+    .price-card.featured .price-cta:hover { background: #18913f; }
+
+    /* ============================================================
+       FOOTER. black, huge wordmark, links, X
+    ============================================================ */
+    footer.site-footer {
+      background: #000;
+      color: #fff;
+      margin-top: clamp(56px, 8vw, 96px);
+      padding: clamp(48px, 7vw, 96px) 0 clamp(36px, 5vw, 56px);
+      overflow: hidden; /* guard against any sub-pixel wordmark overflow */
+    }
+    /* Full-bleed wordmark: spans the entire viewport width, edge to edge. */
+    .footer-wordmark {
+      display: block;
+      width: 100%;
+      font-family: var(--display);
+      font-weight: 700;
+      /* sized so "Voice Typer" stretches across essentially the whole viewport on desktop */
+      font-size: 19.6vw;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      color: #fff;
+      margin: 0 0 clamp(28px, 4vw, 48px);
+      /* extra bottom cushion (scales with font-size) so the y/p descenders
+         clear the divider line below instead of crossing it */
+      padding: 0 12px 0.3em;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .footer-inner { max-width: 1280px; margin: 0 auto; padding: 0 22px; }
+    .footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 28px;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 26px;
+    }
+    .footer-links { display: inline-flex; flex-wrap: wrap; gap: 22px; align-items: center; }
+    .footer-links a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 120ms;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-links a svg { width: 15px; height: 15px; fill: currentColor; }
+    .footer-end { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+    .footer-copy { color: rgba(255,255,255,0.5); font-size: 13px; margin: 0; }
+    /* tiny, more muted than the copyright; intentional EN/PT mix, not translated */
+    .footer-made { color: rgba(255,255,255,0.28); font-size: 10.5px; letter-spacing: 0.01em; margin: 0; }
+    @media (max-width: 540px) {
+      .footer-end { align-items: flex-start; }
+    }
+
+    /* ============================================================
+       FAQ. compact, on-brand, semantic <details> accordions
+    ============================================================ */
+    .faq-list { margin: 8px 0 0; }
+    .faq-item {
+      border-top: 1px solid var(--line-soft);
+      padding: 2px 0;
+    }
+    .faq-item:last-child { border-bottom: 1px solid var(--line-soft); }
+    .faq-item summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 18px 2px;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 17px;
+      letter-spacing: -0.018em;
+      color: var(--ink);
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: '+';
+      flex-shrink: 0;
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 1;
+      color: var(--ink-4);
+      transition: transform 160ms ease;
+    }
+    .faq-item[open] summary::after { transform: rotate(45deg); }
+    .faq-item summary:hover { color: var(--blue); }
+    .faq-item .faq-a {
+      margin: 0 2px 18px;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--ink-2);
+      max-width: 70ch;
+    }
+
+    /* ============================================================
+       LANG SWITCHER. EN / PT / ES pill in the nav
+    ============================================================ */
+    .lang {
+      display: inline-flex; gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .lang button {
+      background: transparent;
+      border: none;
+      color: var(--ink-3);
+      padding: 4px 10px;
+      cursor: pointer;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+    }
+    .lang button.active { background: var(--ink); color: white; }
+    .lang button:not(.active):hover { color: var(--ink); }
+
+    /* Narrow screens: keep the nav on one line without horizontal overflow. */
+    @media (max-width: 460px) {
+      .nav-inner { padding: 0 14px; }
+      .nav-actions { gap: 12px; }
+      .lang button { padding: 4px 8px; }
+    }
+    @media (max-width: 540px) {
+      .hero-title { font-size: 40px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; }
+    }
+  </style>
+
+  <!-- Structured data (JSON-LD) for search + answer engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Voice Typer",
+    "url": "https://voice.codag.site/",
+    "applicationCategory": ["ProductivityApplication", "UtilitiesApplication"],
+    "operatingSystem": "Windows, macOS",
+    "description": "Voice Typer is a fast, lightweight push-to-talk voice dictation app for Windows and macOS. Hold a key, speak, release, and your speech to text pastes at the cursor in any app.",
+    "image": "https://voice.codag.site/logo.png",
+    "featureList": [
+      "Push-to-talk hotkey, F9 by default and rebindable",
+      "Pastes your text at the cursor in any app",
+      "Real-time streaming transcription with a live overlay",
+      "Works in any app that takes text, including the Claude Code terminal",
+      "Transcribes many spoken languages, including mixed in a sentence"
+    ],
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "150 minutes per month",
+        "price": "2.50",
+        "priceCurrency": "USD",
+        "description": "150 minutes per month"
+      },
+      {
+        "@type": "Offer",
+        "name": "350 minutes per month",
+        "price": "5.00",
+        "priceCurrency": "USD",
+        "description": "350 minutes per month"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Voice Typer?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Voice Typer is a lightweight push-to-talk dictation app. You hold a key, speak, and release, and your words are typed in as text wherever the cursor is."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which platforms does Voice Typer support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Voice Typer runs on Windows 10 and 11 and on macOS 12 or later. One account works on either platform, one device at a time."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Voice Typer work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Press and hold the hotkey, which is F9 by default and can be rebound in Settings. Speak while you hold it, then release. Your speech becomes text and pastes at the cursor in any app that accepts text."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does Voice Typer cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "There are two plans. The first is 2.50 US dollars per month for 150 minutes. The second is 5 US dollars per month for 350 minutes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What permissions does macOS need?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "On macOS, Voice Typer needs only Microphone and Accessibility. Microphone lets it hear you, and Accessibility lets it paste your text. On Windows there are no operating system permissions to grant."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which languages and apps does Voice Typer work with?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Voice Typer transcribes many spoken languages and can mix them in a sentence. It works in any app that takes text, including editors, browsers, chat apps, and the Claude Code terminal."
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Voice Typer",
+    "url": "https://voice.codag.site/"
+  }
+  </script>
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <span class="nav-brand">
+        <img src="/logo.png" alt="Voice Typer logo" width="18" height="18">
+        Voice Typer
+      </span>
+      <span class="nav-actions">
+        <span class="lang" id="lang-switcher">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="pt">PT</button>
+          <button type="button" data-lang="es">ES</button>
+        </span>
+        <!--AUTH_NAV-->
+      </span>
+    </div>
+  </nav>
+
+  <!-- ===================== HERO ===================== -->
+  <div class="hero-wrap">
+    <section class="hero">
+      <!-- LEFT: text -->
+      <div class="hero-text">
+        <p class="hero-eyebrow"><b>Voice Typer</b> &nbsp;&middot;&nbsp; <span data-i18n="hero.platform">Windows &amp; macOS</span></p>
+        <h1 class="hero-title">
+          <span data-i18n="hero.title.1">A keyboard,</span><br>
+          <span data-i18n="hero.title.2">but with a&nbsp;mouth.</span>
+        </h1>
+        <p class="hero-sub" data-i18n="hero.sub">Hold a key. Speak. Release. Words appear.</p>
+        <p class="hero-meta-line" data-i18n="hero.meta">Fast, lightweight push-to-talk dictation.</p>
+
+        <div class="cta-row">
+          <!--AUTH_HERO_CTAS-->
+        </div>
+      </div>
+
+      <!-- RIGHT: live demo. Reuses the shared .app-badge. -->
+      <div class="hero-demo" aria-hidden="true">
+        <div class="app-badge" id="heroBadge">
+          <img src="/logo.png" alt="">
+        </div>
+        <p class="badge-state"><span class="swatch"></span><span id="heroBadgeLabel">Recording</span></p>
+        <div class="hero-field">
+          <span class="rec-dot"></span>
+          <span class="hero-typed"><span id="heroTyped"></span><span class="hero-caret"></span></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== HOW IT WORKS ===================== -->
+  <section class="feat" id="how">
+    <div class="card card-light">
+      <p class="eyebrow" data-i18n="how.eyebrow">How it works</p>
+      <h2 class="h2" data-i18n-html="how.title">Hold, speak, <em>done.</em></h2>
+      <p class="lead" data-i18n="how.lead">The whole loop, start to finish. Pick your platform for the setup steps.</p>
+
+      <!-- Platform switch: CSS-only radio tabs so exactly one panel shows. -->
+      <div class="tut-switch">
+        <input type="radio" name="tut-os" id="tut-win" checked>
+        <input type="radio" name="tut-os" id="tut-mac">
+
+        <div class="tut-tabs" role="tablist">
+          <label class="tut-tab" for="tut-win">
+            <svg viewBox="0 0 24 24" fill="#0078d4" aria-hidden="true"><path d="M3 5.7L10.5 4.6V11.4H3V5.7zM11.4 4.5L21 3V11.4H11.4V4.5zM3 12.6H10.5V19.4L3 18.3V12.6zM11.4 12.6H21V21L11.4 19.5V12.6z"/></svg>
+            <span data-i18n="how.tab.win">Windows</span>
+          </label>
+          <label class="tut-tab" for="tut-mac">
+            <svg viewBox="0 0 24 24" fill="#1d1d1f" aria-hidden="true"><path d="M17.05 12.04c-.03-2.85 2.33-4.22 2.44-4.28-1.33-1.95-3.4-2.21-4.13-2.24-1.76-.18-3.43 1.04-4.32 1.04-.89 0-2.26-1.01-3.72-.99-1.91.03-3.68 1.11-4.66 2.82-1.99 3.45-.51 8.55 1.42 11.35.94 1.37 2.06 2.91 3.53 2.85 1.42-.06 1.95-.92 3.66-.92 1.71 0 2.19.92 3.69.89 1.52-.03 2.49-1.39 3.42-2.77 1.08-1.59 1.52-3.13 1.55-3.21-.03-.01-2.98-1.14-3.01-4.53zM14.6 4.13c.78-.95 1.31-2.27 1.16-3.58-1.12.05-2.48.75-3.29 1.69-.72.83-1.36 2.17-1.19 3.45 1.25.1 2.53-.63 3.32-1.56z"/></svg>
+            <span data-i18n="how.tab.mac">macOS</span>
+          </label>
+        </div>
+
+        <!-- Windows steps -->
+        <ol class="tut-steps tut-panel tut-panel-win" data-os="win">
+          <li>
+            <span class="tut-n">1</span>
+            <div>
+              <h4 data-i18n="how.win.1.t">Download and install</h4>
+              <p data-i18n-html="how.win.1.b">Grab the Windows app from your <a href="/dashboard">dashboard</a> and run it. If SmartScreen appears, choose More info, then Run anyway. It docks in the system tray.</p>
+            </div>
+          </li>
+          <li>
+            <span class="tut-n">2</span>
+            <div>
+              <h4 data-i18n="how.win.2.t">Paste your token</h4>
+              <p data-i18n="how.win.2.b">Right-click the Voice Typer icon in the system tray and open Settings. Paste the access token from your dashboard to link the app to your account. There are no OS permissions to grant on Windows.</p>
+            </div>
+          </li>
+          <li>
+            <span class="tut-n">3</span>
+            <div>
+              <h4 data-i18n="how.win.3.t">Hold, speak, release</h4>
+              <p data-i18n="how.win.3.b">Press and hold the hotkey (F9 by default, and you can rebind it in Settings). The badge ring turns green while recording. Speak, then release. It turns amber for a moment and your words paste at the cursor.</p>
+            </div>
+          </li>
+        </ol>
+
+        <!-- macOS steps -->
+        <ol class="tut-steps tut-panel tut-panel-mac" data-os="mac">
+          <li>
+            <span class="tut-n">1</span>
+            <div>
+              <h4 data-i18n="how.mac.1.t">Download and open</h4>
+              <p data-i18n-html="how.mac.1.b">Download the macOS disk image from your <a href="/dashboard">dashboard</a> and drag the app to Applications. The first time, right-click the app and choose Open to get past Gatekeeper.</p>
+            </div>
+          </li>
+          <li>
+            <span class="tut-n">2</span>
+            <div>
+              <h4 data-i18n="how.mac.2.t">Grant two permissions</h4>
+              <p data-i18n="how.mac.2.b">In System Settings, under Privacy and Security, enable Voice Typer for Microphone and Accessibility. Microphone lets it hear you. Accessibility lets it paste your text. That is all it needs.</p>
+            </div>
+          </li>
+          <li>
+            <span class="tut-n">3</span>
+            <div>
+              <h4 data-i18n="how.mac.3.t">Paste your token</h4>
+              <p data-i18n="how.mac.3.b">Click the Voice Typer icon in the menu bar and open Settings. Paste the access token from your dashboard to link the app to your account.</p>
+            </div>
+          </li>
+          <li>
+            <span class="tut-n">4</span>
+            <div>
+              <h4 data-i18n="how.mac.4.t">Hold, speak, release</h4>
+              <p data-i18n="how.mac.4.b">Press and hold the hotkey (F9 by default, rebindable in Settings). The badge ring turns green while recording. Speak, then release. It turns amber for a moment and your words paste where the cursor is.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BENTO: Claude Code + Real-time ===================== -->
+  <section class="feat" id="demos">
+    <div class="bento-grid">
+
+      <!-- Works with Claude Code -->
+      <article class="bento-cell card card-light" id="claude-code">
+        <div class="bento-body">
+          <div class="cc-head">
+            <span class="cc-icon">
+              <img src="/claude-code-icon.webp" alt="Claude Code">
+            </span>
+            <p class="eyebrow" data-i18n="cc.eyebrow">Works with Claude Code</p>
+          </div>
+          <h2 class="h2" data-i18n-html="cc.title">Speak it. <em>It lands in the CLI.</em></h2>
+          <p class="lead" data-i18n="cc.lead">Voice Typer drops text wherever your cursor is, including the Claude Code terminal. Hold the key, say your prompt, and it lands in the CLI. It works the same in any app that takes text.</p>
+        </div>
+        <div class="cc-window">
+          <div class="titlebar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="name">claude code</span>
+          </div>
+          <video src="/claude-code-demo.mp4?v=2" autoplay muted loop playsinline preload="metadata"></video>
+        </div>
+      </article>
+
+      <!-- Real-time transcription -->
+      <article class="bento-cell card card-light" id="streaming">
+        <div class="bento-body">
+          <p class="eyebrow" data-i18n="rt.eyebrow">Real-time transcription</p>
+          <h2 class="h2" data-i18n-html="rt.title">Watch your words <em>appear live.</em></h2>
+          <p class="lead" data-i18n="rt.lead">Turn on streaming mode and your words show up on screen as you speak. A live overlay shows the transcript forming, and the moment you release the key, the finished text is ready to drop in.</p>
+        </div>
+        <div class="cc-window">
+          <div class="titlebar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="name">live transcript</span>
+          </div>
+          <video src="/streaming-demo.mp4" autoplay muted loop playsinline preload="metadata"></video>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===================== PRICING ===================== -->
+  <section class="feat" id="pricing">
+    <div class="card card-light price-section">
+      <p class="eyebrow" data-i18n="price.eyebrow">Pricing</p>
+      <h2 class="h2 price-h2" data-i18n-html="price.title">Pick a plan. <em>Start talking.</em></h2>
+      <div class="price-grid">
+
+        <article class="price-card">
+          <p class="price-tier" data-i18n="price.tier1">Starter</p>
+          <span class="price-amt">$2.50<span class="price-per" data-i18n="price.per">/ month</span></span>
+          <p class="what" data-i18n="price.plan1">150 minutes per month</p>
+          <a class="price-cta" href="/signup" data-i18n="price.cta">Get started</a>
+        </article>
+
+        <article class="price-card featured">
+          <span class="price-badge" data-i18n="price.badge">Best value</span>
+          <p class="price-tier" data-i18n="price.tier2">Pro</p>
+          <span class="price-amt">$5<span class="price-per" data-i18n="price.per2">/ month</span></span>
+          <p class="what" data-i18n="price.plan2">350 minutes per month</p>
+          <a class="price-cta" href="/signup" data-i18n="price.cta2">Get started</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FAQ ===================== -->
+  <section class="feat" id="faq">
+    <div class="card card-light">
+      <p class="eyebrow" data-i18n="faq.eyebrow">FAQ</p>
+      <h2 class="h2" data-i18n="faq.title">Questions, answered.</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary data-i18n="faq.q1">What is Voice Typer?</summary>
+          <p class="faq-a" data-i18n="faq.a1">Voice Typer is a lightweight push-to-talk dictation app. You hold a key, speak, and release, and your words are typed in as text wherever the cursor is.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="faq.q2">Which platforms does it support?</summary>
+          <p class="faq-a" data-i18n="faq.a2">Voice Typer runs on Windows 10 and 11 and on macOS 12 or later. One account works on either platform, one device at a time.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="faq.q3">How does it work?</summary>
+          <p class="faq-a" data-i18n="faq.a3">Press and hold the hotkey, which is F9 by default and can be rebound in Settings. Speak while you hold it, then release. Your speech becomes text and pastes at the cursor in any app that accepts text.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="faq.q4">How much does it cost?</summary>
+          <p class="faq-a" data-i18n="faq.a4">There are two plans. The first is 2.50 US dollars per month for 150 minutes. The second is 5 US dollars per month for 350 minutes.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="faq.q5">What permissions does macOS need?</summary>
+          <p class="faq-a" data-i18n="faq.a5">On macOS, Voice Typer needs only Microphone and Accessibility. Microphone lets it hear you, and Accessibility lets it paste your text. On Windows there are no OS permissions to grant.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-i18n="faq.q6">Which languages and apps does it work with?</summary>
+          <p class="faq-a" data-i18n="faq.a6">Voice Typer transcribes many spoken languages and can mix them in a sentence. It works in any app that takes text, including editors, browsers, chat apps, and the Claude Code terminal.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site-footer">
+    <p class="footer-wordmark">Voice Typer</p>
+    <div class="footer-inner">
+      <div class="footer-row">
+        <div class="footer-links">
+          <a href="#how" data-i18n="footer.how">How it works</a>
+          <a href="#pricing" data-i18n="footer.pricing">Pricing</a>
+          <a href="/login" data-i18n="footer.signin">Sign in</a>
+          <a href="https://x.com/emojidecawboy" target="_blank" rel="noopener" aria-label="Voice Typer on X">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z"/></svg>
+            @emojidecawboy
+          </a>
+        </div>
+        <div class="footer-end">
+          <p class="footer-copy">&copy; 2026 Voice Typer</p>
+          <p class="footer-made">made with love pelos meninos maus</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ================== I18N (EN / PT / ES) ==================
+       Translates the CURRENT, stack-free copy only. No vendor or
+       implementation details are referenced anywhere. */
+    var I18N = {
+      en: {
+        'meta.description': 'Hold a key, speak, release. Words appear. A fast, lightweight push-to-talk dictation app for Windows and macOS.',
+        'hero.platform': 'Windows & macOS',
+        'hero.title.1': 'A keyboard,',
+        'hero.title.2': 'but with a mouth.',
+        'hero.sub': 'Hold a key. Speak. Release. Words appear.',
+        'hero.meta': 'Fast, lightweight push-to-talk dictation.',
+        'hero.chip.light': 'Lightweight',
+        'hero.chip.fast': 'Fast',
+        'hero.chip.platform': 'Windows & macOS',
+        'how.eyebrow': 'How it works',
+        'how.title': 'Hold, speak, <em>done.</em>',
+        'how.lead': 'The whole loop, start to finish. Pick your platform for the setup steps.',
+        'how.tab.win': 'Windows',
+        'how.tab.mac': 'macOS',
+        'how.win.1.t': 'Download and install',
+        'how.win.1.b': 'Grab the Windows app from your <a href="/dashboard">dashboard</a> and run it. If SmartScreen appears, choose More info, then Run anyway. It docks in the system tray.',
+        'how.win.2.t': 'Paste your token',
+        'how.win.2.b': 'Right-click the Voice Typer icon in the system tray and open Settings. Paste the access token from your dashboard to link the app to your account. There are no OS permissions to grant on Windows.',
+        'how.win.3.t': 'Hold, speak, release',
+        'how.win.3.b': 'Press and hold the hotkey (F9 by default, and you can rebind it in Settings). The badge ring turns green while recording. Speak, then release. It turns amber for a moment and your words paste at the cursor.',
+        'how.mac.1.t': 'Download and open',
+        'how.mac.1.b': 'Download the macOS disk image from your <a href="/dashboard">dashboard</a> and drag the app to Applications. The first time, right-click the app and choose Open to get past Gatekeeper.',
+        'how.mac.2.t': 'Grant two permissions',
+        'how.mac.2.b': 'In System Settings, under Privacy and Security, enable Voice Typer for Microphone and Accessibility. Microphone lets it hear you. Accessibility lets it paste your text. That is all it needs.',
+        'how.mac.3.t': 'Paste your token',
+        'how.mac.3.b': 'Click the Voice Typer icon in the menu bar and open Settings. Paste the access token from your dashboard to link the app to your account.',
+        'how.mac.4.t': 'Hold, speak, release',
+        'how.mac.4.b': 'Press and hold the hotkey (F9 by default, rebindable in Settings). The badge ring turns green while recording. Speak, then release. It turns amber for a moment and your words paste where the cursor is.',
+        'badge.recording': 'Recording',
+        'badge.working': 'Working',
+        'badge.pasted': 'Pasted',
+        'cc.eyebrow': 'Works with Claude Code',
+        'cc.title': 'Speak it. <em>It lands in the CLI.</em>',
+        'cc.lead': 'Voice Typer drops text wherever your cursor is, including the Claude Code terminal. Hold the key, say your prompt, and it lands in the CLI. It works the same in any app that takes text.',
+        'rt.eyebrow': 'Real-time transcription',
+        'rt.title': 'Watch your words <em>appear live.</em>',
+        'rt.lead': 'Turn on streaming mode and your words show up on screen as you speak. A live overlay shows the transcript forming, and the moment you release the key, the finished text is ready to drop in.',
+        'price.eyebrow': 'Pricing',
+        'price.title': 'Pick a plan. <em>Start talking.</em>',
+        'price.per': '/ month',
+        'price.per2': '/ month',
+        'price.plan1': '150 minutes per month',
+        'price.plan2': '350 minutes per month',
+        'price.cta': 'Get started',
+        'price.cta2': 'Get started',
+        'price.tier1': 'Starter',
+        'price.tier2': 'Pro',
+        'price.badge': 'Best value',
+        'footer.how': 'How it works',
+        'footer.pricing': 'Pricing',
+        'footer.signin': 'Sign in',
+        'cta.getStarted': 'Get started',
+        'cta.signin': 'Sign in',
+        'cta.signup': 'Sign up',
+        'cta.openDashboard': 'Open dashboard',
+        'cta.dashboard': 'Dashboard',
+        'faq.eyebrow': 'FAQ',
+        'faq.title': 'Questions, answered.',
+        'faq.q1': 'What is Voice Typer?',
+        'faq.a1': 'Voice Typer is a lightweight push-to-talk dictation app. You hold a key, speak, and release, and your words are typed in as text wherever the cursor is.',
+        'faq.q2': 'Which platforms does it support?',
+        'faq.a2': 'Voice Typer runs on Windows 10 and 11 and on macOS 12 or later. One account works on either platform, one device at a time.',
+        'faq.q3': 'How does it work?',
+        'faq.a3': 'Press and hold the hotkey, which is F9 by default and can be rebound in Settings. Speak while you hold it, then release. Your speech becomes text and pastes at the cursor in any app that accepts text.',
+        'faq.q4': 'How much does it cost?',
+        'faq.a4': 'There are two plans. The first is 2.50 US dollars per month for 150 minutes. The second is 5 US dollars per month for 350 minutes.',
+        'faq.q5': 'What permissions does macOS need?',
+        'faq.a5': 'On macOS, Voice Typer needs only Microphone and Accessibility. Microphone lets it hear you, and Accessibility lets it paste your text. On Windows there are no OS permissions to grant.',
+        'faq.q6': 'Which languages and apps does it work with?',
+        'faq.a6': 'Voice Typer transcribes many spoken languages and can mix them in a sentence. It works in any app that takes text, including editors, browsers, chat apps, and the Claude Code terminal.'
+      },
+      pt: {
+        'meta.description': 'Segure uma tecla, fale, solte. As palavras aparecem. Um app de ditado leve e rapido com tecla de atalho, para Windows e macOS.',
+        'hero.platform': 'Windows e macOS',
+        'hero.title.1': 'Um teclado,',
+        'hero.title.2': 'mas com boca.',
+        'hero.sub': 'Segure uma tecla. Fale. Solte. As palavras aparecem.',
+        'hero.meta': 'Ditado leve e rapido com tecla de atalho.',
+        'hero.chip.light': 'Leve',
+        'hero.chip.fast': 'Rapido',
+        'hero.chip.platform': 'Windows e macOS',
+        'how.eyebrow': 'Como funciona',
+        'how.title': 'Segure, fale, <em>pronto.</em>',
+        'how.lead': 'O fluxo inteiro, do inicio ao fim. Escolha sua plataforma para ver os passos de configuracao.',
+        'how.tab.win': 'Windows',
+        'how.tab.mac': 'macOS',
+        'how.win.1.t': 'Baixe e instale',
+        'how.win.1.b': 'Pegue o app de Windows no seu <a href="/dashboard">painel</a> e execute. Se o SmartScreen aparecer, escolha Mais informacoes e depois Executar assim mesmo. Ele fica na bandeja do sistema.',
+        'how.win.2.t': 'Cole o seu token',
+        'how.win.2.b': 'Clique com o botao direito no icone do Voice Typer na bandeja do sistema e abra as Configuracoes. Cole o token de acesso do seu painel para vincular o app a sua conta. No Windows nao ha permissoes do sistema a conceder.',
+        'how.win.3.t': 'Segure, fale, solte',
+        'how.win.3.b': 'Pressione e segure a tecla de atalho (F9 por padrao, e voce pode trocar nas Configuracoes). O anel do emblema fica verde enquanto grava. Fale e solte. Ele fica ambar por um instante e suas palavras sao coladas no cursor.',
+        'how.mac.1.t': 'Baixe e abra',
+        'how.mac.1.b': 'Baixe a imagem de disco do macOS no seu <a href="/dashboard">painel</a> e arraste o app para Aplicativos. Na primeira vez, clique com o botao direito no app e escolha Abrir para passar pelo Gatekeeper.',
+        'how.mac.2.t': 'Conceda duas permissoes',
+        'how.mac.2.b': 'Em Ajustes do Sistema, em Privacidade e Seguranca, ative o Voice Typer para Microfone e Acessibilidade. O Microfone permite ouvir voce. A Acessibilidade permite colar o seu texto. E so isso que ele precisa.',
+        'how.mac.3.t': 'Cole o seu token',
+        'how.mac.3.b': 'Clique no icone do Voice Typer na barra de menus e abra as Configuracoes. Cole o token de acesso do seu painel para vincular o app a sua conta.',
+        'how.mac.4.t': 'Segure, fale, solte',
+        'how.mac.4.b': 'Pressione e segure a tecla de atalho (F9 por padrao, configuravel nos Ajustes). O anel do emblema fica verde enquanto grava. Fale e solte. Ele fica ambar por um instante e suas palavras sao coladas onde estiver o cursor.',
+        'badge.recording': 'Gravando',
+        'badge.working': 'Processando',
+        'badge.pasted': 'Colado',
+        'cc.eyebrow': 'Funciona com o Claude Code',
+        'cc.title': 'Fale. <em>Aparece na CLI.</em>',
+        'cc.lead': 'O Voice Typer coloca o texto onde estiver o cursor, inclusive no terminal do Claude Code. Segure a tecla, diga o seu comando e ele aparece na CLI. Funciona igual em qualquer app que aceite texto.',
+        'rt.eyebrow': 'Transcricao em tempo real',
+        'rt.title': 'Veja suas palavras <em>aparecerem ao vivo.</em>',
+        'rt.lead': 'Ative o modo de transmissao e suas palavras aparecem na tela enquanto voce fala. Uma sobreposicao ao vivo mostra a transcricao se formando e, no momento em que voce solta a tecla, o texto final ja esta pronto para colar.',
+        'price.eyebrow': 'Precos',
+        'price.title': 'Escolha um plano. <em>Comece a falar.</em>',
+        'price.per': '/ mes',
+        'price.per2': '/ mes',
+        'price.plan1': '150 minutos por mes',
+        'price.plan2': '350 minutos por mes',
+        'price.cta': 'Comecar',
+        'price.cta2': 'Comecar',
+        'price.tier1': 'Inicial',
+        'price.tier2': 'Pro',
+        'price.badge': 'Melhor valor',
+        'footer.how': 'Como funciona',
+        'footer.pricing': 'Precos',
+        'footer.signin': 'Entrar',
+        'cta.getStarted': 'Comecar',
+        'cta.signin': 'Entrar',
+        'cta.signup': 'Criar conta',
+        'cta.openDashboard': 'Abrir painel',
+        'cta.dashboard': 'Painel',
+        'faq.eyebrow': 'Perguntas frequentes',
+        'faq.title': 'Perguntas, respondidas.',
+        'faq.q1': 'O que e o Voice Typer?',
+        'faq.a1': 'O Voice Typer e um app de ditado leve com tecla de atalho. Voce segura uma tecla, fala e solta, e suas palavras viram texto onde estiver o cursor.',
+        'faq.q2': 'Quais plataformas ele suporta?',
+        'faq.a2': 'O Voice Typer roda no Windows 10 e 11 e no macOS 12 ou mais recente. Uma conta funciona em qualquer plataforma, um dispositivo por vez.',
+        'faq.q3': 'Como funciona?',
+        'faq.a3': 'Pressione e segure a tecla de atalho, que e F9 por padrao e pode ser trocada nos Ajustes. Fale enquanto segura e depois solte. Sua fala vira texto e cola no cursor em qualquer app que aceite texto.',
+        'faq.q4': 'Quanto custa?',
+        'faq.a4': 'Ha dois planos. O primeiro custa 2,50 dolares por mes por 150 minutos. O segundo custa 5 dolares por mes por 350 minutos.',
+        'faq.q5': 'Quais permissoes o macOS precisa?',
+        'faq.a5': 'No macOS, o Voice Typer precisa apenas de Microfone e Acessibilidade. O Microfone permite ouvir voce e a Acessibilidade permite colar o seu texto. No Windows nao ha permissoes do sistema a conceder.',
+        'faq.q6': 'Com quais idiomas e apps funciona?',
+        'faq.a6': 'O Voice Typer transcreve muitos idiomas falados e pode misturar em uma frase. Funciona em qualquer app que aceite texto, incluindo editores, navegadores, apps de chat e o terminal do Claude Code.'
+      },
+      es: {
+        'meta.description': 'Manten una tecla, habla, sueltala. Aparecen las palabras. Una app de dictado ligera y rapida con tecla rapida, para Windows y macOS.',
+        'hero.platform': 'Windows y macOS',
+        'hero.title.1': 'Un teclado,',
+        'hero.title.2': 'pero con boca.',
+        'hero.sub': 'Manten una tecla. Habla. Sueltala. Aparecen las palabras.',
+        'hero.meta': 'Dictado ligero y rapido con tecla rapida.',
+        'hero.chip.light': 'Ligero',
+        'hero.chip.fast': 'Rapido',
+        'hero.chip.platform': 'Windows y macOS',
+        'how.eyebrow': 'Como funciona',
+        'how.title': 'Manten, habla, <em>listo.</em>',
+        'how.lead': 'Todo el proceso, de principio a fin. Elige tu plataforma para ver los pasos de configuracion.',
+        'how.tab.win': 'Windows',
+        'how.tab.mac': 'macOS',
+        'how.win.1.t': 'Descarga e instala',
+        'how.win.1.b': 'Consigue la app de Windows desde tu <a href="/dashboard">panel</a> y ejecutala. Si aparece SmartScreen, elige Mas informacion y luego Ejecutar de todas formas. Se queda en la bandeja del sistema.',
+        'how.win.2.t': 'Pega tu token',
+        'how.win.2.b': 'Haz clic derecho en el icono de Voice Typer en la bandeja del sistema y abre Ajustes. Pega el token de acceso de tu panel para vincular la app a tu cuenta. En Windows no hay permisos del sistema que conceder.',
+        'how.win.3.t': 'Manten, habla, suelta',
+        'how.win.3.b': 'Manten pulsada la tecla rapida (F9 por defecto, y puedes cambiarla en Ajustes). El anillo de la insignia se pone verde mientras graba. Habla y suelta. Se pone ambar un momento y tus palabras se pegan en el cursor.',
+        'how.mac.1.t': 'Descarga y abre',
+        'how.mac.1.b': 'Descarga la imagen de disco de macOS desde tu <a href="/dashboard">panel</a> y arrastra la app a Aplicaciones. La primera vez, haz clic derecho en la app y elige Abrir para pasar Gatekeeper.',
+        'how.mac.2.t': 'Concede dos permisos',
+        'how.mac.2.b': 'En Ajustes del Sistema, en Privacidad y Seguridad, activa Voice Typer para Microfono y Accesibilidad. El Microfono le permite oirte. La Accesibilidad le permite pegar tu texto. Eso es todo lo que necesita.',
+        'how.mac.3.t': 'Pega tu token',
+        'how.mac.3.b': 'Haz clic en el icono de Voice Typer en la barra de menus y abre Ajustes. Pega el token de acceso de tu panel para vincular la app a tu cuenta.',
+        'how.mac.4.t': 'Manten, habla, suelta',
+        'how.mac.4.b': 'Manten pulsada la tecla rapida (F9 por defecto, configurable en Ajustes). El anillo de la insignia se pone verde mientras graba. Habla y suelta. Se pone ambar un momento y tus palabras se pegan donde este el cursor.',
+        'badge.recording': 'Grabando',
+        'badge.working': 'Procesando',
+        'badge.pasted': 'Pegado',
+        'cc.eyebrow': 'Funciona con Claude Code',
+        'cc.title': 'Dilo. <em>Aparece en la CLI.</em>',
+        'cc.lead': 'Voice Typer coloca el texto donde este tu cursor, incluido el terminal de Claude Code. Manten la tecla, di tu instruccion y aparece en la CLI. Funciona igual en cualquier app que acepte texto.',
+        'rt.eyebrow': 'Transcripcion en tiempo real',
+        'rt.title': 'Mira tus palabras <em>aparecer en vivo.</em>',
+        'rt.lead': 'Activa el modo de transmision y tus palabras aparecen en pantalla mientras hablas. Una capa en vivo muestra la transcripcion formandose y, en cuanto sueltas la tecla, el texto final esta listo para pegar.',
+        'price.eyebrow': 'Precios',
+        'price.title': 'Elige un plan. <em>Empieza a hablar.</em>',
+        'price.per': '/ mes',
+        'price.per2': '/ mes',
+        'price.plan1': '150 minutos por mes',
+        'price.plan2': '350 minutos por mes',
+        'price.cta': 'Empezar',
+        'price.cta2': 'Empezar',
+        'price.tier1': 'Inicial',
+        'price.tier2': 'Pro',
+        'price.badge': 'Mejor valor',
+        'footer.how': 'Como funciona',
+        'footer.pricing': 'Precios',
+        'footer.signin': 'Iniciar sesion',
+        'cta.getStarted': 'Empezar',
+        'cta.signin': 'Iniciar sesion',
+        'cta.signup': 'Crear cuenta',
+        'cta.openDashboard': 'Abrir panel',
+        'cta.dashboard': 'Panel',
+        'faq.eyebrow': 'Preguntas frecuentes',
+        'faq.title': 'Preguntas, respondidas.',
+        'faq.q1': 'Que es Voice Typer?',
+        'faq.a1': 'Voice Typer es una app de dictado ligera con tecla rapida. Mantienes una tecla, hablas y la sueltas, y tus palabras se escriben como texto donde este el cursor.',
+        'faq.q2': 'Que plataformas admite?',
+        'faq.a2': 'Voice Typer funciona en Windows 10 y 11 y en macOS 12 o posterior. Una cuenta sirve en cualquier plataforma, un dispositivo a la vez.',
+        'faq.q3': 'Como funciona?',
+        'faq.a3': 'Manten pulsada la tecla rapida, que es F9 por defecto y se puede cambiar en Ajustes. Habla mientras la mantienes y luego suelta. Tu voz se vuelve texto y se pega en el cursor en cualquier app que acepte texto.',
+        'faq.q4': 'Cuanto cuesta?',
+        'faq.a4': 'Hay dos planes. El primero cuesta 2,50 dolares al mes por 150 minutos. El segundo cuesta 5 dolares al mes por 350 minutos.',
+        'faq.q5': 'Que permisos necesita macOS?',
+        'faq.a5': 'En macOS, Voice Typer solo necesita Microfono y Accesibilidad. El Microfono le permite oirte y la Accesibilidad le permite pegar tu texto. En Windows no hay permisos del sistema que conceder.',
+        'faq.q6': 'Con que idiomas y apps funciona?',
+        'faq.a6': 'Voice Typer transcribe muchos idiomas hablados y puede mezclarlos en una frase. Funciona en cualquier app que acepte texto, incluidos editores, navegadores, apps de chat y el terminal de Claude Code.'
+      }
+    };
+
+    var currentLang = 'en';
+
+    function detectLang() {
+      var saved = '';
+      try { saved = localStorage.getItem('vt_lang') || ''; } catch (e) {}
+      if (saved && I18N[saved]) return saved;
+      var raw = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+      if (raw.indexOf('pt') === 0) return 'pt';
+      if (raw.indexOf('es') === 0) return 'es';
+      return 'en';
+    }
+
+    function t(key) {
+      var dict = I18N[currentLang] || I18N.en;
+      return dict[key] != null ? dict[key] : (I18N.en[key] || '');
+    }
+
+    function applyLang(lang) {
+      currentLang = I18N[lang] ? lang : 'en';
+      var dict = I18N[currentLang];
+      document.documentElement.lang = currentLang === 'pt' ? 'pt-BR' : currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        var k = el.getAttribute('data-i18n');
+        if (dict[k] != null) el.textContent = dict[k];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+        var k = el.getAttribute('data-i18n-html');
+        if (dict[k] != null) el.innerHTML = dict[k];
+      });
+      var meta = document.querySelector('meta[name="description"]');
+      if (meta && dict['meta.description']) meta.setAttribute('content', dict['meta.description']);
+      document.querySelectorAll('#lang-switcher button').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.lang === currentLang);
+      });
+      // Refresh the live badge labels in the new language immediately.
+      var bl = document.getElementById('badgeLabel');
+      var bd = document.getElementById('appBadge');
+      if (bl && bd) bl.textContent = bd.classList.contains('is-working') ? t('badge.working') : t('badge.recording');
+      var hbl = document.getElementById('heroBadgeLabel');
+      var hbd = document.getElementById('heroBadge');
+      if (hbl && hbd) {
+        hbl.textContent = hbd.classList.contains('is-working') ? t('badge.working')
+          : hbd.classList.contains('is-idle') ? t('badge.pasted')
+          : t('badge.recording');
+      }
+      try { localStorage.setItem('vt_lang', currentLang); } catch (e) {}
+    }
+
+    /* App badge state demo: cycle recording (green) -> working (amber) -> back.
+       Mirrors the app popup. Language-aware via t(). Respects reduced-motion. */
+    (function () {
+      var badge = document.getElementById('appBadge');
+      var label = document.getElementById('badgeLabel');
+      if (!badge) return;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+      var timers = [];
+      function clear() { timers.forEach(clearTimeout); timers = []; }
+      function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
+      function cycle() {
+        clear();
+        badge.classList.remove('is-working');
+        if (label) label.textContent = t('badge.recording');
+        at(2600, function () {
+          badge.classList.add('is-working');
+          if (label) label.textContent = t('badge.working');
+        });
+        at(3800, function () {
+          badge.classList.remove('is-working');
+          if (label) label.textContent = t('badge.recording');
+        });
+        at(6400, cycle);
+      }
+      if ('IntersectionObserver' in window) {
+        var started = false;
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting && !started) { started = true; cycle(); io.disconnect(); }
+          });
+        }, { threshold: 0.3 });
+        io.observe(badge);
+      } else {
+        cycle();
+      }
+    })();
+
+    /* Hero live demo: mirrors the real app in NORMAL mode.
+       Recording (green, NO text) -> Processing (amber, NO text) ->
+       Pasted (idle gray, text appears) -> pause -> clear -> loop.
+       Solid ring colors per state (no green->green fade).
+       Respects reduced-motion (static end-state, no loop). */
+    (function () {
+      var badge = document.getElementById('heroBadge');
+      var label = document.getElementById('heroBadgeLabel');
+      var typed = document.getElementById('heroTyped');
+      if (!badge || !typed) return;
+      var phrases = [
+        'send this to the team',
+        'remind me at 9am tomorrow',
+        'add milk and eggs to the list'
+      ];
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Each state is an instant, solid color swap. No text during green/amber.
+      function setRecording() {
+        badge.classList.remove('is-working', 'is-idle');
+        badge.classList.add('is-recording');
+        if (label) label.textContent = t('badge.recording');
+      }
+      function setWorking() {
+        badge.classList.remove('is-recording', 'is-idle');
+        badge.classList.add('is-working');
+        if (label) label.textContent = t('badge.working');
+      }
+      function setPasted() {
+        badge.classList.remove('is-recording', 'is-working');
+        badge.classList.add('is-idle');
+        if (label) label.textContent = t('badge.pasted');
+      }
+
+      if (reduce) {
+        // Static end-state: pasted phrase visible, ring solid green, no loop.
+        badge.classList.remove('is-working', 'is-idle', 'is-recording');
+        typed.textContent = phrases[0];
+        if (label) label.textContent = t('badge.pasted');
+        return;
+      }
+
+      var timers = [];
+      function clearAll() { timers.forEach(clearTimeout); timers = []; }
+      function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
+      var idx = 0;
+
+      function cycle() {
+        clearAll();
+        var phrase = phrases[idx % phrases.length];
+        idx++;
+
+        // All timers below are scheduled relative to cycle start.
+        // 1) Recording: green, NO text (just the caret in an empty field).
+        typed.textContent = '';
+        setRecording();
+
+        // 2) Processing: amber, still NO text.
+        var REC_MS = 2500;
+        var WORK_MS = 1200;
+        var pasteStart = REC_MS + WORK_MS;   // 3700
+        at(REC_MS, function () { setWorking(); });
+
+        // 3) Pasted: idle gray, then the transcription appears (quick paste-style reveal).
+        at(pasteStart, function () { setPasted(); });
+        var perChar = 22;                    // fast, reads as a paste
+        for (var i = 1; i <= phrase.length; i++) {
+          (function (n) {
+            at(pasteStart + 40 + n * perChar, function () { typed.textContent = phrase.slice(0, n); });
+          })(i);
+        }
+
+        // 4) Hold the pasted text, then clear and loop back to recording.
+        at(pasteStart + 2900, cycle);
+      }
+
+      if ('IntersectionObserver' in window) {
+        var started = false;
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting && !started) { started = true; cycle(); io.disconnect(); }
+          });
+        }, { threshold: 0.25 });
+        io.observe(badge);
+      } else {
+        cycle();
+      }
+    })();
+
+    document.addEventListener('DOMContentLoaded', function () {
+      applyLang(detectLang());
+      document.querySelectorAll('#lang-switcher button').forEach(function (b) {
+        b.addEventListener('click', function () { applyLang(b.dataset.lang); });
+      });
+    });
+  </script>
+</body>
+</html>

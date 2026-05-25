@@ -1,0 +1,122 @@
+[package]
+name = "voice-typer"
+version = "0.4.4"
+edition = "2021"
+description = "Push-to-talk Portuguese voice transcription for Windows (Deepgram cloud)."
+
+[[bin]]
+name = "VoiceTyper"
+path = "src/main.rs"
+
+[dependencies]
+# Audio capture (cpal — WASAPI on Windows, CoreAudio on macOS)
+cpal = "0.15"
+
+# System tray (cross-platform: tray-icon supports Windows + macOS + Linux)
+tray-icon = "0.19"
+tao = "0.30"
+
+# Clipboard
+arboard = "3.4"
+
+# Config + JSON
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Path discovery
+dirs = "5.0"
+
+# Image loading (logo for layered window)
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+# Logging to file
+log = "0.4"
+fern = "0.6"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+
+# HTTP for proxy /api/transcribe
+ureq = { version = "2.10", default-features = false, features = ["tls", "json"] }
+
+# WebSocket for proxy /api/stream
+tungstenite = { version = "0.24", default-features = false, features = ["rustls-tls-webpki-roots", "handshake"] }
+url = "2"
+
+# Error handling
+anyhow = "1.0"
+
+# Mutex / once-cell-style
+parking_lot = "0.12"
+
+# Win32 APIs (popup, hooks, paste, etc.)
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Controls",
+    "Win32_UI_HiDpi",
+    "Win32_Graphics_Gdi",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Threading",
+    "Win32_System_DataExchange",
+    "Win32_System_Memory",
+    "Win32_Globalization",
+] }
+
+# macOS AppKit / Cocoa / CGEvent bindings
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+block2 = "0.6"
+objc2-foundation = { version = "0.3", features = [
+    "NSString",
+    "NSGeometry",
+    "NSThread",
+    "NSNotification",
+    "NSRunLoop",
+    "NSDate",
+    "NSTimer",
+] }
+objc2-app-kit = { version = "0.3", features = [
+    "NSApplication",
+    "NSWindow",
+    "NSPanel",
+    "NSView",
+    "NSTextField",
+    "NSControl",
+    "NSResponder",
+    "NSColor",
+    "NSScreen",
+    "NSEvent",
+    "NSGraphics",
+    "NSText",
+    "NSParagraphStyle",
+    "NSImage",
+    "NSImageView",
+    "NSImageCell",
+    "NSButton",
+    "NSButtonCell",
+    "NSPopUpButton",
+    "NSSecureTextField",
+    "NSWindow",
+] }
+objc2-core-graphics = { version = "0.3", features = [
+    "CGEvent",
+    "CGEventSource",
+    "CGEventTypes",
+] }
+objc2-core-foundation = { version = "0.3", features = [
+    "CFRunLoop",
+    "CFMachPort",
+    "CFBase",
+] }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+incremental = false

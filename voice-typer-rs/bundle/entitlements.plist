@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Hardened runtime + microphone capture. -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+
+    <!-- Network egress (HTTPS to the proxy). -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- These two are NOT entitlements — Input Monitoring and Accessibility are
+         user-granted TCC permissions, requested at runtime via prompts driven
+         by the Info.plist privacy strings + the first CGEventTapCreate call. -->
+</dict>
+</plist>

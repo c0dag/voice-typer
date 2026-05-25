@@ -1,0 +1,13 @@
+/target
+/installer-out
+/tempvttest
+*.log
+build.log
+ct2_build.log
+*.exe
+*.zip
+*.dmg
+.DS_Store
+Thumbs.db
+# accidental copy from a Windows desktop path — not source code
+UserslucassDesktoprk3229voice-hostfilesferris.svg

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Voice Typer</string>
+    <key>CFBundleExecutable</key>
+    <string>VoiceTyper</string>
+    <key>CFBundleIconFile</key>
+    <string>icon.icns</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.voicetyper.app</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>VoiceTyper</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.4.4</string>
+    <key>CFBundleVersion</key>
+    <string>0.4.4</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+
+    <!-- Run as an accessory (tray app, no Dock icon). -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Privacy & Security usage descriptions. Shown in the OS prompts. -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Voice Typer captures your microphone while the push-to-talk key is held so it can transcribe what you said.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Voice Typer pastes transcribed text into the focused application using a synthetic Command-V.</string>
+
+    <!-- Disable App Transport Security exceptions; all traffic is HTTPS through your proxy. -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+
+    <!-- High-DPI -->
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>

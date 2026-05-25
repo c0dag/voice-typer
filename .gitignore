@@ -1,0 +1,34 @@
+# Rust build output (both crates)
+**/target/
+
+# Scratch + verification artifacts at the monorepo root
+/*.png
+/*.jpeg
+/*.jpg
+/.playwright-mcp/
+/mac-artifact*/
+/voice-typer/
+
+# Server runtime data + secrets (the server dir also has its own .gitignore)
+voice-typer-server/.env
+voice-typer-server/.env.fedora
+voice-typer-server/.env.local
+voice-typer-server/data/
+voice-typer-server/downloads/
+voice-typer-server/spa/
+voice-typer-server/landing/*.exe
+voice-typer-server/landing/index.html.bak
+voice-typer-server/landing/designs/
+
+# Databases
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# stray playwright snapshot
+/stripe-checkout-2.md

@@ -1,0 +1,37 @@
+# Cloudflare Tunnel config for voice-typer-server.
+#
+# 1. On the VPS, install cloudflared:
+#      curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o /tmp/cf.deb
+#      sudo dpkg -i /tmp/cf.deb
+# 2. Login and create the tunnel (do this once, on the VPS):
+#      cloudflared tunnel login
+#      cloudflared tunnel create voice-typer
+#    This writes ~/.cloudflared/<tunnel-uuid>.json. Copy that UUID into `tunnel:` below
+#    and into `credentials-file:`.
+# 3. Add a DNS record for the tunnel:
+#      cloudflared tunnel route dns voice-typer voice.your-domain.com
+# 4. Copy this file to /etc/cloudflared/config.yml (root-owned, 0600), filling in
+#    <tunnel-uuid> and the hostname.
+# 5. Install + start the service:
+#      sudo cloudflared service install
+#      sudo systemctl enable --now cloudflared
+#
+# The axum server itself binds 127.0.0.1:8787, so the only path in from the public
+# internet is through this tunnel (TLS terminated at Cloudflare's edge).
+
+tunnel: <tunnel-uuid>
+credentials-file: /etc/cloudflared/<tunnel-uuid>.json
+
+ingress:
+  - hostname: voice.your-domain.com
+    service: http://127.0.0.1:8787
+    originRequest:
+      # WebSocket needs to stay open for streaming transcription sessions.
+      noTLSVerify: false
+      connectTimeout: 30s
+      tlsTimeout: 10s
+      tcpKeepAlive: 30s
+      keepAliveTimeout: 300s
+      # Without this, idle WS pings can get dropped at the edge.
+      disableChunkedEncoding: false
+  - service: http_status:404

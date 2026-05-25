@@ -1,0 +1,10 @@
+/target
+/data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.local
+spa/node_modules
+spa/dist
