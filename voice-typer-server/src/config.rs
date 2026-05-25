@@ -4,8 +4,15 @@ use std::env;
 #[derive(Clone, Debug)]
 pub struct Config {
     pub deepgram_api_key: String,
+    /// Deepgram model, pinned server-side so a client cannot request a pricier
+    /// model than we intend to pay for.
+    pub deepgram_model: String,
     pub database_url: String,
     pub bind_addr: String,
+    /// Set the `Secure` attribute on the session cookie. Default true (prod is
+    /// HTTPS). Set COOKIE_SECURE=false only for plain-http local dev on a
+    /// non-localhost origin.
+    pub cookie_secure: bool,
     pub admin_bootstrap_email: Option<String>,
     pub admin_bootstrap_password: Option<String>,
 
@@ -27,9 +34,13 @@ impl Config {
         Ok(Self {
             deepgram_api_key: env::var("DEEPGRAM_API_KEY")
                 .context("DEEPGRAM_API_KEY must be set")?,
+            deepgram_model: env::var("DEEPGRAM_MODEL").unwrap_or_else(|_| "nova-3".into()),
             database_url: env::var("DATABASE_URL")
                 .unwrap_or_else(|_| "sqlite://./data/voice-typer.db".into()),
             bind_addr: env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8787".into()),
+            cookie_secure: env::var("COOKIE_SECURE")
+                .map(|v| v != "false" && v != "0")
+                .unwrap_or(true),
             admin_bootstrap_email: nonempty("ADMIN_BOOTSTRAP_EMAIL"),
             admin_bootstrap_password: nonempty("ADMIN_BOOTSTRAP_PASSWORD"),
             stripe_secret_key: nonempty("STRIPE_SECRET_KEY"),

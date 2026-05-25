@@ -18,6 +18,8 @@ pub enum AppError {
     TokenInUseElsewhere,
     #[error("quota exceeded")]
     QuotaExceeded,
+    #[error("too many requests")]
+    RateLimited,
     #[error("subscription inactive")]
     SubscriptionInactive,
     #[error("bad request: {0}")]
@@ -40,6 +42,7 @@ impl IntoResponse for AppError {
             AppError::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
             AppError::TokenInUseElsewhere => (StatusCode::FORBIDDEN, "token_in_use_elsewhere"),
             AppError::QuotaExceeded => (StatusCode::TOO_MANY_REQUESTS, "quota_exceeded"),
+            AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate_limited"),
             AppError::SubscriptionInactive => (StatusCode::PAYMENT_REQUIRED, "subscription_inactive"),
             AppError::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             AppError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
@@ -50,9 +53,14 @@ impl IntoResponse for AppError {
             }
         };
 
+        // Never leak internal error text (SQL/anyhow detail) to clients.
+        let message = match &self {
+            AppError::Sqlx(_) | AppError::Other(_) => "internal server error".to_string(),
+            other => other.to_string(),
+        };
         let body = Json(json!({
             "error": code,
-            "message": self.to_string(),
+            "message": message,
         }));
         (status, body).into_response()
     }

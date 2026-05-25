@@ -11,6 +11,7 @@ use axum::{
     Form,
 };
 use serde::Deserialize;
+use std::time::Duration;
 
 #[derive(Deserialize)]
 pub struct SignupQuery {
@@ -30,6 +31,7 @@ pub async fn signup_get(
         "weak_password" => "Password must be at least 12 characters.",
         "email_taken" => "That email is already registered. Try signing in.",
         "bad_email" => "Please enter a valid email address.",
+        "too_many" => "Too many sign-up attempts. Please wait a few minutes and try again.",
         _ => "Something went wrong. Try again.",
     });
     let error_div = error
@@ -72,8 +74,16 @@ pub struct SignupForm {
 
 pub async fn signup_post(
     State(state): State<AppState>,
+    req_headers: HeaderMap,
     Form(req): Form<SignupForm>,
 ) -> AppResult<Response> {
+    let ip = crate::rate_limit::client_ip(&req_headers);
+    if !state
+        .rate_limiter
+        .check(&format!("signup:{ip}"), 5, Duration::from_secs(600))
+    {
+        return Ok(Redirect::to("/signup?err=too_many").into_response());
+    }
     let email = req.email.trim().to_lowercase();
     if email.is_empty() || !email.contains('@') {
         return Ok(Redirect::to("/signup?err=bad_email").into_response());
@@ -120,7 +130,7 @@ pub async fn signup_post(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400)
+        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400, state.cfg.cookie_secure)
             .parse()
             .unwrap(),
     );
@@ -151,6 +161,7 @@ pub async fn login_get(
 
     let error = q.err.as_deref().map(|e| match e {
         "bad_credentials" => "Wrong email or password.",
+        "too_many" => "Too many attempts. Please wait a few minutes and try again.",
         _ => "Something went wrong. Try again.",
     });
 
@@ -200,22 +211,34 @@ pub struct LoginForm {
 
 pub async fn login_post(
     State(state): State<AppState>,
+    req_headers: HeaderMap,
     Form(req): Form<LoginForm>,
 ) -> AppResult<Response> {
     let email = req.email.trim().to_lowercase();
-    let row: Option<(i64, String)> =
-        sqlx::query_as("SELECT id, password_hash FROM users WHERE email = ?1")
-            .bind(&email)
-            .fetch_optional(&state.db)
-            .await?;
-
     let next = req
         .next
         .as_deref()
         .filter(|n| n.starts_with('/'))
         .unwrap_or("/dashboard");
 
+    let ip = crate::rate_limit::client_ip(&req_headers);
+    if !state
+        .rate_limiter
+        .check(&format!("login:{ip}"), 10, Duration::from_secs(600))
+    {
+        return Ok(Redirect::to(&format!("/login?err=too_many&next={}", urlencode(next))).into_response());
+    }
+
+    let row: Option<(i64, String)> =
+        sqlx::query_as("SELECT id, password_hash FROM users WHERE email = ?1")
+            .bind(&email)
+            .fetch_optional(&state.db)
+            .await?;
+
     let Some((user_id, pw_hash)) = row else {
+        // Equalize timing with the verify path so a missing account is not
+        // distinguishable from a wrong password (defeats user enumeration).
+        password::waste_time_verifying(&req.password);
         return Ok(Redirect::to(&format!("/login?err=bad_credentials&next={}", urlencode(next))).into_response());
     };
     let ok = password::verify(&req.password, &pw_hash)
@@ -228,7 +251,7 @@ pub async fn login_post(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400)
+        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400, state.cfg.cookie_secure)
             .parse()
             .unwrap(),
     );
@@ -251,7 +274,7 @@ pub async fn logout_post(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::clear_cookie_header().parse().unwrap(),
+        session::clear_cookie_header(state.cfg.cookie_secure).parse().unwrap(),
     );
     headers.insert(header::LOCATION, "/".parse().unwrap());
     (StatusCode::SEE_OTHER, headers).into_response()

@@ -38,14 +38,16 @@ pub async fn destroy(pool: &SqlitePool, id: &str) -> AppResult<()> {
     Ok(())
 }
 
-pub fn cookie_header(value: &str, max_age_seconds: i64) -> String {
+pub fn cookie_header(value: &str, max_age_seconds: i64, secure: bool) -> String {
+    let secure = if secure { "; Secure" } else { "" };
     format!(
-        "{SESSION_COOKIE}={value}; HttpOnly; SameSite=Lax; Path=/; Max-Age={max_age_seconds}"
+        "{SESSION_COOKIE}={value}; HttpOnly; SameSite=Lax; Path=/; Max-Age={max_age_seconds}{secure}"
     )
 }
 
-pub fn clear_cookie_header() -> String {
-    format!("{SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
+pub fn clear_cookie_header(secure: bool) -> String {
+    let secure = if secure { "; Secure" } else { "" };
+    format!("{SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0{secure}")
 }
 
 fn extract_session_cookie(parts: &Parts) -> Option<String> {

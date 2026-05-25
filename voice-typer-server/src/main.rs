@@ -4,6 +4,7 @@ mod config;
 mod db;
 mod error;
 mod proxy;
+mod rate_limit;
 mod web;
 
 use anyhow::Result;
@@ -26,6 +27,7 @@ pub struct AppState {
     pub cfg: Arc<Config>,
     pub http: reqwest::Client,
     pub session_lock: SessionLock,
+    pub rate_limiter: Arc<rate_limit::RateLimiter>,
 }
 
 #[tokio::main]
@@ -47,6 +49,7 @@ async fn main() -> Result<()> {
             .timeout(std::time::Duration::from_secs(60))
             .build()?,
         session_lock: SessionLock::new(),
+        rate_limiter: Arc::new(rate_limit::RateLimiter::new()),
     };
 
     // Static landing assets: logo, favicon, svgs. Served from ./landing.
@@ -71,7 +74,13 @@ async fn main() -> Result<()> {
         .nest("/api", proxy::routes::router())
         // Static files (logo.png, favicon.ico, *.svg) — must be last so it doesn't shadow routes.
         .fallback_service(landing_assets)
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            // Log method + path only. Query strings can carry ?token= for the
+            // WebSocket stream, and we must not write tokens to the logs.
+            TraceLayer::new_for_http().make_span_with(|req: &axum::extract::Request| {
+                tracing::info_span!("request", method = %req.method(), path = %req.uri().path())
+            }),
+        )
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(&cfg.bind_addr).await?;

@@ -25,8 +25,7 @@ pub fn router() -> Router<AppState> {
 
 #[derive(Deserialize)]
 pub struct TranscribeQuery {
-    #[serde(default)]
-    pub model: Option<String>,
+    // `model` is intentionally not accepted: it is pinned server-side.
     #[serde(default)]
     pub language: Option<String>,
     #[serde(default)]
@@ -44,6 +43,13 @@ async fn transcribe(
     body: Bytes,
 ) -> AppResult<impl IntoResponse> {
     let auth = authenticate_token(&state, &parts_extr.0).await?;
+    if !auth.is_admin
+        && !state
+            .rate_limiter
+            .check(&format!("tx:{}", auth.user_id), 120, Duration::from_secs(60))
+    {
+        return Err(AppError::RateLimited);
+    }
     let _used = check_quota(&state, &auth).await?;
 
     let mut url = "https://api.deepgram.com/v1/listen?".to_string();
@@ -57,9 +63,9 @@ async fn transcribe(
         url.push_str(&urlencoding(v));
         first = false;
     };
-    if let Some(m) = q.model.as_deref() {
-        push("model", m);
-    }
+    // Model is pinned server-side; a client-supplied model is ignored so a
+    // caller cannot select a pricier Deepgram model on our bill.
+    push("model", &state.cfg.deepgram_model);
     if let Some(l) = q.language.as_deref() {
         push("language", l);
     }
@@ -91,16 +97,22 @@ async fn transcribe(
         )));
     }
 
-    // Estimate audio duration from body size assuming linear16 mono if sample_rate known.
-    if let Some(sr) = q.sample_rate {
-        let seconds = body.len() as f64 / (sr as f64 * 2.0);
-        log_usage(&state, auth.user_id, seconds, "batch").await;
-    }
-
     let bytes = resp
         .bytes()
         .await
         .map_err(|e| AppError::Upstream(format!("deepgram body: {e}")))?;
+
+    // Meter from Deepgram's authoritative reported duration, never from
+    // client-supplied params (a caller could omit/inflate sample_rate to dodge
+    // the quota). `metadata.duration` is the seconds of audio Deepgram processed.
+    if let Ok(v) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+        if let Some(seconds) = v["metadata"]["duration"].as_f64() {
+            if seconds > 0.0 {
+                log_usage(&state, auth.user_id, seconds, "batch").await;
+            }
+        }
+    }
+
     Ok((
         [(axum::http::header::CONTENT_TYPE, "application/json")],
         bytes,
@@ -121,8 +133,7 @@ fn urlencoding(s: &str) -> String {
 
 #[derive(Deserialize)]
 pub struct StreamQuery {
-    #[serde(default)]
-    pub model: Option<String>,
+    // `model` is intentionally not accepted: it is pinned server-side.
     #[serde(default)]
     pub language: Option<String>,
     #[serde(default)]
@@ -144,15 +155,21 @@ async fn stream(
     // Re-extract auth from the parts to ensure we honor Authorization header path too.
     let token = extract_token_ws(&parts_extr.0).ok_or(AppError::Unauthorized)?;
     let auth = crate::proxy::authenticate_token_str(&state, &token).await?;
+    if !auth.is_admin
+        && !state
+            .rate_limiter
+            .check(&format!("st:{}", auth.user_id), 30, Duration::from_secs(60))
+    {
+        return Err(AppError::RateLimited);
+    }
     let _used = check_quota(&state, &auth).await?;
 
     let mut url = format!("wss://api.deepgram.com/v1/listen?encoding={}", q.encoding.as_deref().unwrap_or("linear16"));
     if let Some(sr) = q.sample_rate {
         url.push_str(&format!("&sample_rate={sr}"));
     }
-    if let Some(m) = q.model.as_deref() {
-        url.push_str(&format!("&model={}", urlencoding(m)));
-    }
+    // Model pinned server-side; client-supplied model ignored.
+    url.push_str(&format!("&model={}", urlencoding(&state.cfg.deepgram_model)));
     if let Some(l) = q.language.as_deref() {
         url.push_str(&format!("&language={}", urlencoding(l)));
     }
@@ -161,11 +178,10 @@ async fn stream(
     let api_key = state.cfg.deepgram_api_key.clone();
     let session_lock = state.session_lock.clone();
     let app_state = state.clone();
-    let sr_for_usage = q.sample_rate;
 
     Ok(ws.on_upgrade(move |socket| async move {
         let guard = session_lock.acquire(auth.user_id).await;
-        if let Err(e) = proxy_ws(socket, &url, &api_key, guard, app_state, auth, sr_for_usage).await {
+        if let Err(e) = proxy_ws(socket, &url, &api_key, guard, app_state, auth).await {
             tracing::warn!("ws proxy error: {e}");
         }
     }))
@@ -178,7 +194,6 @@ async fn proxy_ws(
     guard: crate::proxy::session_lock::Guard,
     state: AppState,
     auth: TokenAuth,
-    sample_rate: Option<u32>,
 ) -> anyhow::Result<()> {
     use tokio_tungstenite::tungstenite::http::Request;
 
@@ -199,7 +214,9 @@ async fn proxy_ws(
     let (mut dg_tx, mut dg_rx) = dg_ws.split();
     let (mut cl_tx, mut cl_rx) = client_ws.split();
 
-    let mut bytes_sent: u64 = 0;
+    // Bill from Deepgram's own reported timing (the start+duration of results
+    // and the total in the final Metadata), never from client-controlled input.
+    let mut audio_secs: f64 = 0.0;
 
     let kicked = async move {
         guard.kicked().await;
@@ -219,7 +236,6 @@ async fn proxy_ws(
             msg = cl_rx.next() => {
                 match msg {
                     Some(Ok(WsMessage::Binary(b))) => {
-                        bytes_sent += b.len() as u64;
                         if let Err(e) = dg_tx.send(TgMessage::Binary(b)).await {
                             tracing::debug!("dg send: {e}");
                             break;
@@ -249,6 +265,16 @@ async fn proxy_ws(
             msg = dg_rx.next() => {
                 match msg {
                     Some(Ok(TgMessage::Text(t))) => {
+                        // Deepgram reports `start`+`duration` per result and a
+                        // total `duration` in the final Metadata; the furthest
+                        // end time is the audio seconds actually processed.
+                        if let Ok(v) = serde_json::from_str::<serde_json::Value>(&t) {
+                            let end = v["start"].as_f64().unwrap_or(0.0)
+                                + v["duration"].as_f64().unwrap_or(0.0);
+                            if end > audio_secs {
+                                audio_secs = end;
+                            }
+                        }
                         if let Err(e) = cl_tx.send(WsMessage::Text(t)).await {
                             tracing::debug!("client send: {e}");
                             break;
@@ -271,11 +297,8 @@ async fn proxy_ws(
         }
     }
 
-    if let Some(sr) = sample_rate {
-        let seconds = bytes_sent as f64 / (sr as f64 * 2.0);
-        if seconds > 0.0 {
-            log_usage(&state, auth.user_id, seconds, "stream").await;
-        }
+    if audio_secs > 0.0 {
+        log_usage(&state, auth.user_id, audio_secs, "stream").await;
     }
 
     Ok(())

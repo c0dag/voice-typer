@@ -11,6 +11,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::time::Duration;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -38,8 +39,16 @@ pub struct TokenResponse {
 
 async fn signup(
     State(state): State<AppState>,
+    req_headers: HeaderMap,
     Json(req): Json<SignupReq>,
 ) -> AppResult<impl IntoResponse> {
+    let ip = crate::rate_limit::client_ip(&req_headers);
+    if !state
+        .rate_limiter
+        .check(&format!("api_signup:{ip}"), 5, Duration::from_secs(600))
+    {
+        return Err(AppError::RateLimited);
+    }
     let email = req.email.trim().to_lowercase();
     if email.is_empty() || !email.contains('@') {
         return Err(AppError::BadRequest("invalid email".into()));
@@ -111,7 +120,7 @@ async fn signup(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400)
+        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400, state.cfg.cookie_secure)
             .parse()
             .unwrap(),
     );
@@ -127,8 +136,16 @@ pub struct LoginReq {
 
 async fn login(
     State(state): State<AppState>,
+    req_headers: HeaderMap,
     Json(req): Json<LoginReq>,
 ) -> AppResult<impl IntoResponse> {
+    let ip = crate::rate_limit::client_ip(&req_headers);
+    if !state
+        .rate_limiter
+        .check(&format!("login:{ip}"), 10, Duration::from_secs(600))
+    {
+        return Err(AppError::RateLimited);
+    }
     let email = req.email.trim().to_lowercase();
     let row: Option<(i64, String)> =
         sqlx::query_as("SELECT id, password_hash FROM users WHERE email = ?1")
@@ -136,7 +153,12 @@ async fn login(
             .fetch_optional(&state.db)
             .await?;
 
-    let (user_id, pw_hash) = row.ok_or(AppError::Unauthorized)?;
+    let Some((user_id, pw_hash)) = row else {
+        // Equalize timing so a missing account is indistinguishable from a wrong
+        // password (defeats user enumeration via response timing).
+        password::waste_time_verifying(&req.password);
+        return Err(AppError::Unauthorized);
+    };
     let ok = password::verify(&req.password, &pw_hash)
         .map_err(|e| AppError::Other(anyhow::anyhow!("verify: {e}")))?;
     if !ok {
@@ -147,7 +169,7 @@ async fn login(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400)
+        session::cookie_header(&sid, session::SESSION_TTL_DAYS * 86400, state.cfg.cookie_secure)
             .parse()
             .unwrap(),
     );
@@ -169,7 +191,7 @@ async fn logout(
     let mut headers = HeaderMap::new();
     headers.insert(
         header::SET_COOKIE,
-        session::clear_cookie_header().parse().unwrap(),
+        session::clear_cookie_header(state.cfg.cookie_secure).parse().unwrap(),
     );
     Ok((StatusCode::OK, headers, Json(json!({ "ok": true }))))
 }
