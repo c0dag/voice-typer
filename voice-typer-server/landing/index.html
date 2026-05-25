@@ -527,16 +527,15 @@
     ============================================================ */
     /* PRICING. larger cards, one featured tier with a green accent. */
     .price-h2 { margin-bottom: clamp(24px, 3vw, 36px); }
-    .price-trial { text-align: center; color: var(--ink-3); font-size: 15px; margin: clamp(22px, 3vw, 32px) 0 0; }
     .price-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 18px;
-      margin-top: 8px;
-      max-width: 880px;
+      margin: 8px auto 0;
+      max-width: 1040px;
     }
-    @media (min-width: 760px) {
-      .price-grid { grid-template-columns: 1fr 1fr; align-items: stretch; gap: 22px; }
+    @media (min-width: 880px) {
+      .price-grid { grid-template-columns: repeat(3, 1fr); align-items: stretch; gap: 22px; }
     }
     .price-card {
       position: relative;
@@ -1033,6 +1032,13 @@
       <div class="price-grid">
 
         <article class="price-card">
+          <p class="price-tier" data-i18n="price.tier0">Free trial</p>
+          <span class="price-amt" data-i18n="price.amt0">Free</span>
+          <p class="what" data-i18n="price.plan0">10 minutes, no credit card.</p>
+          <a class="price-cta" href="/signup" data-i18n="price.cta0">Start free</a>
+        </article>
+
+        <article class="price-card">
           <p class="price-tier" data-i18n="price.tier1">Starter</p>
           <span class="price-amt">$2.50<span class="price-per" data-i18n="price.per">/ month</span></span>
           <p class="what" data-i18n="price.plan1">150 minutes per month</p>
@@ -1048,7 +1054,6 @@
         </article>
 
       </div>
-      <p class="price-trial" data-i18n="price.trial">No credit card required. Every account starts with a free 10-minute trial.</p>
     </div>
   </section>
 
@@ -1152,7 +1157,10 @@
         'rt.title': 'Watch your words <em>appear live.</em>',
         'rt.lead': 'Turn on streaming mode and your words show up on screen as you speak. A live overlay shows the transcript forming, and the moment you release the key, the finished text is ready to drop in.',
         'price.eyebrow': 'Pricing',
-        'price.trial': 'No credit card required. Every account starts with a free 10-minute trial.',
+        'price.tier0': 'Free trial',
+        'price.amt0': 'Free',
+        'price.plan0': '10 minutes, no credit card.',
+        'price.cta0': 'Start free',
         'price.title': 'Pick a plan. <em>Start talking.</em>',
         'price.per': '/ month',
         'price.per2': '/ month',
@@ -1225,7 +1233,10 @@
         'rt.title': 'Veja suas palavras <em>aparecerem ao vivo.</em>',
         'rt.lead': 'Ative o modo de transmissao e suas palavras aparecem na tela enquanto voce fala. Uma sobreposicao ao vivo mostra a transcricao se formando e, no momento em que voce solta a tecla, o texto final ja esta pronto para colar.',
         'price.eyebrow': 'Precos',
-        'price.trial': 'Sem cartao de credito. Toda conta comeca com um teste gratis de 10 minutos.',
+        'price.tier0': 'Teste gratis',
+        'price.amt0': 'Gratis',
+        'price.plan0': '10 minutos, sem cartao.',
+        'price.cta0': 'Comecar gratis',
         'price.title': 'Escolha um plano. <em>Comece a falar.</em>',
         'price.per': '/ mes',
         'price.per2': '/ mes',
@@ -1298,7 +1309,10 @@
         'rt.title': 'Mira tus palabras <em>aparecer en vivo.</em>',
         'rt.lead': 'Activa el modo de transmision y tus palabras aparecen en pantalla mientras hablas. Una capa en vivo muestra la transcripcion formandose y, en cuanto sueltas la tecla, el texto final esta listo para pegar.',
         'price.eyebrow': 'Precios',
-        'price.trial': 'Sin tarjeta de credito. Cada cuenta empieza con una prueba gratis de 10 minutos.',
+        'price.tier0': 'Prueba gratis',
+        'price.amt0': 'Gratis',
+        'price.plan0': '10 minutos, sin tarjeta.',
+        'price.cta0': 'Empezar gratis',
         'price.title': 'Elige un plan. <em>Empieza a hablar.</em>',
         'price.per': '/ mes',
         'price.per2': '/ mes',
