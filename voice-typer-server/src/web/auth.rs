@@ -177,7 +177,7 @@ pub async fn login_get(
     Query(q): Query<LoginQuery>,
 ) -> Response {
     if user.is_some() {
-        return Redirect::to(q.next.as_deref().unwrap_or("/dashboard")).into_response();
+        return Redirect::to(safe_next(q.next.as_deref())).into_response();
     }
 
     let error = q.err.as_deref().map(|e| match e {
@@ -236,11 +236,7 @@ pub async fn login_post(
     Form(req): Form<LoginForm>,
 ) -> AppResult<Response> {
     let email = req.email.trim().to_lowercase();
-    let next = req
-        .next
-        .as_deref()
-        .filter(|n| n.starts_with('/'))
-        .unwrap_or("/dashboard");
+    let next = safe_next(req.next.as_deref());
 
     let ip = crate::rate_limit::client_ip(&req_headers);
     if !state
@@ -354,6 +350,23 @@ pub async fn verify_resend_post(
         return Ok(Redirect::to("/dashboard?verified=error").into_response());
     }
     Ok(Redirect::to("/dashboard?verified=sent").into_response())
+}
+
+/// Only allow same-site relative redirect targets. Rejects protocol-relative
+/// (`//host`), backslash variants (`/\host`), and control characters, so the
+/// `next` param cannot be turned into an open redirect.
+fn safe_next(next: Option<&str>) -> &str {
+    match next {
+        Some(n)
+            if n.starts_with('/')
+                && !n.starts_with("//")
+                && !n.starts_with("/\\")
+                && !n.contains(|c| c == '\r' || c == '\n') =>
+        {
+            n
+        }
+        _ => "/dashboard",
+    }
 }
 
 fn urlencode(s: &str) -> String {

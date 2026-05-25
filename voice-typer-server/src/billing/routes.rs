@@ -78,10 +78,22 @@ pub struct SuccessQuery {
 /// GET /billing/success: best-effort immediate activation (so the dashboard
 /// reflects the new subscription without waiting for the webhook), then to the
 /// dashboard. The webhook remains the source of truth and is idempotent.
-async fn success(State(state): State<AppState>, Query(q): Query<SuccessQuery>) -> Response {
+async fn success(
+    State(state): State<AppState>,
+    req_headers: HeaderMap,
+    Query(q): Query<SuccessQuery>,
+) -> Response {
     // Do not require the session cookie here: this is a cross-site return from
     // Stripe, and we identify the user from the Checkout Session's
     // client_reference_id instead. The webhook is still the source of truth.
+    // Rate-limit per IP so it cannot be spammed into many Stripe API lookups.
+    let ip = crate::rate_limit::client_ip(&req_headers);
+    if !state
+        .rate_limiter
+        .check(&format!("success:{ip}"), 20, std::time::Duration::from_secs(60))
+    {
+        return Redirect::to("/dashboard").into_response();
+    }
     let mut extra = String::new();
     if let Some(session_id) = q.session_id.as_deref() {
         match activate_from_session(&state, session_id).await {
