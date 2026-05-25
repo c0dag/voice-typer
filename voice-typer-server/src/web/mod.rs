@@ -236,10 +236,11 @@ td.mono {{ font-family: var(--mono); font-size: 12px; color: var(--ink-2); }}
 .download-tile h3 {{ margin: 4px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }}
 .download-tile p {{ margin: 0; font-size: 13px; color: var(--ink-3); }}
 @media (max-width: 600px) {{ .download-grid {{ grid-template-columns: 1fr; }} }}
-.mac-note {{ margin-top: 14px; }}
-.mac-note summary {{ cursor: pointer; color: var(--ink-2); font-size: 14px; }}
-.mac-note summary:hover {{ color: var(--ink); }}
-.mac-note p {{ margin: 6px 0 0; }}
+.help-note {{ margin-top: 14px; }}
+.help-note summary {{ cursor: pointer; color: var(--ink-2); font-size: 14px; }}
+.help-note summary:hover {{ color: var(--ink); }}
+.help-note p {{ margin: 6px 0 0; }}
+.help-note video {{ width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: var(--bg-soft); }}
 
 /* Password show/hide toggle */
 .pw-wrap {{ position: relative; }}
