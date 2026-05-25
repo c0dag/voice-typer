@@ -1,0 +1,49 @@
+name: server build
+
+# Builds a fully static x86_64 musl binary for voice-typer-server so it can be
+# dropped onto any Linux host (the Oracle prod box is glibc 2.31; a static musl
+# binary runs there regardless). Download the artifact and scp it to the server.
+
+on:
+  push:
+    paths:
+      - "voice-typer-server/**"
+      - ".github/workflows/server.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: voice-typer-server
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install musl toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            voice-typer-server/target
+          key: ${{ runner.os }}-musl-${{ hashFiles('voice-typer-server/Cargo.lock') }}
+
+      - name: Build static musl binary
+        env:
+          CC_x86_64_unknown_linux_musl: musl-gcc
+        run: cargo build --release --target x86_64-unknown-linux-musl
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-typer-server-musl
+          path: voice-typer-server/target/x86_64-unknown-linux-musl/release/voice-typer-server
+          if-no-files-found: error

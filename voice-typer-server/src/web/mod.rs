@@ -12,6 +12,21 @@ use axum::response::Html;
 /// Render a small auth/dashboard page that re-uses the landing's design tokens.
 /// The shared CSS lives in this function so all pages compile to a single binary.
 pub fn page(title: &str, current_user_email: Option<&str>, body: &str) -> Html<String> {
+    page_inner(title, current_user_email, body, "")
+}
+
+/// Wider content column for data-dense back-office pages; the default narrow
+/// column makes the /admin tables overflow their card.
+pub fn page_wide(title: &str, current_user_email: Option<&str>, body: &str) -> Html<String> {
+    page_inner(title, current_user_email, body, "wide")
+}
+
+fn page_inner(
+    title: &str,
+    current_user_email: Option<&str>,
+    body: &str,
+    main_class: &str,
+) -> Html<String> {
     let nav_right = match current_user_email {
         Some(email) => format!(
             r#"<span class="nav-user">{}</span>
@@ -97,6 +112,7 @@ main {{
   margin: 0 auto;
   padding: clamp(28px, 6vw, 64px) 22px clamp(40px, 8vw, 80px);
 }}
+main.wide {{ max-width: 980px; }}
 h1.page-title {{
   font-family: var(--display);
   font-weight: 600;
@@ -194,6 +210,8 @@ table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
 th, td {{ text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }}
 th {{ color: var(--ink-3); font-weight: 500; font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase; }}
 td.mono {{ font-family: var(--mono); font-size: 12px; color: var(--ink-2); }}
+.table-wrap {{ overflow-x: auto; -webkit-overflow-scrolling: touch; }}
+.table-wrap table {{ min-width: 640px; }}
 
 .download-grid {{
   display: grid;
@@ -253,14 +271,15 @@ td.mono {{ font-family: var(--mono); font-size: 12px; color: var(--ink-2); }}
     </span>
   </div>
 </nav>
-<main>
+<main class="{main_class}">
 {body}
 </main>
 </body>
 </html>"#,
         title = html_escape(title),
         nav_right = nav_right,
-        body = body
+        body = body,
+        main_class = main_class,
     );
     Html(html)
 }

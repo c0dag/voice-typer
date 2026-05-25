@@ -59,7 +59,7 @@ pub async fn render(
         .await?;
 
     let invite_rows: String = if invites.is_empty() {
-        r#"<tr><td colspan="5" class="muted">No invites yet.</td></tr>"#.to_string()
+        r#"<tr><td colspan="4" class="muted">No invites yet.</td></tr>"#.to_string()
     } else {
         invites
             .iter()
@@ -178,24 +178,24 @@ pub async fn render(
 
            <div class="card">
              <h2>Invites</h2>
-             <table>
+             <div class="table-wrap"><table>
                <thead><tr><th>Code</th><th>For</th><th>Status</th><th>Created</th></tr></thead>
                <tbody>{invite_rows}</tbody>
-             </table>
+             </table></div>
            </div>
 
            <div class="card">
              <h2>Users</h2>
              <p class="muted">Grant a plan to give someone access without paying (a comp), or set Inactive to revoke. Comped accounts are tagged "(comp)". Paying users manage their own subscription in the billing portal; granting here overrides the status directly. Usage is this calendar month, in minutes.</p>
-             <table>
+             <div class="table-wrap"><table>
                <thead><tr><th>ID</th><th>Email</th><th>Admin</th><th>Subscription</th><th>This month</th><th>Grant plan</th></tr></thead>
                <tbody>{user_rows}</tbody>
-             </table>
+             </table></div>
            </div>"#,
         email = super::html_escape(&admin.0.email),
     );
 
-    Ok(super::page("Admin · Voice Typer", Some(&admin.0.email), &body).into_response())
+    Ok(super::page_wide("Admin · Voice Typer", Some(&admin.0.email), &body).into_response())
 }
 
 #[derive(Deserialize)]
